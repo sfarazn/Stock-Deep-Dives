@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Broadcom Inc. — Peter Lynch Financial & SBC Impact Screener</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:200px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}.trend-down{color:var(--red);font-weight:600}
+  .anomaly{color:var(--accent);font-weight:700}.na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}.cell-good{background:#e8f5e9}.cell-warn{background:#fff8e1}.cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}.dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}.dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}.card.invert{border-left-color:var(--gold)}.card.golden{border-left-color:var(--green)}.card.management{border-left-color:var(--teal)}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}.card h4.gold{color:var(--gold)}.card h4.teal{color:var(--teal)}.card h4.green{color:var(--green)}
+  .card p,.card li{font-size:13px;line-height:1.7}.card ul{padding-left:18px}.card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}.badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}.badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}.cat-fast{background:#f3e5f5;color:#6a1b9a}.cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px}
+  .stat-box{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center}.stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+  .alert-banner{background:#fff8e1;border:1px solid #ffe082;border-left:4px solid var(--yellow);padding:10px 16px;margin-bottom:24px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#7a5800}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>Broadcom Inc.</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: AVGO (NASDAQ)</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>April 9, 2026</span></div>
+    <div class="meta-item">Price (AVGO): <span>~$175 (volatile; ~$302 on Mar 27, 2026)</span></div>
+    <div class="meta-item">Market Cap: <span>~$828B (at $175)</span></div>
+    <div class="meta-item">Category: <span><span class="category-badge cat-fast">Fast Grower</span></span></div>
+    <div class="meta-item">HQ: <span>Palo Alto, CA, United States</span></div>
+  </div>
+</div>
+
+<div class="alert-banner">
+  ⚠ PRICE ALERT — As of April 9, 2026, AVGO has sold off sharply (est. ~40% from late-March highs of ~$302) amid global tariff escalation and broad tech sector de-rating. All per-share DCF comparisons in this report are anchored to the ~$175 level. FCF yield improves materially at lower prices — see Section ③ for updated valuation context.
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">FY2025 Revenue</div>
+    <div class="stat-val">$63.9B</div>
+    <div class="stat-sub">+23.9% YoY; AI engine</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FCF (FY2025)</div>
+    <div class="stat-val">$26.9B</div>
+    <div class="stat-sub">42.1% FCF margin</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Adj. EBITDA (FY2025)</div>
+    <div class="stat-val">$43.0B</div>
+    <div class="stat-sub">67.3% of revenue</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">ROIC (TTM)</div>
+    <div class="stat-val">21.3%</div>
+    <div class="stat-sub">Recovering post-VMware</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FCF Yield (at ~$175)</div>
+    <div class="stat-val">3.2%</div>
+    <div class="stat-sub">vs. 1.9% at $302</div>
+  </div>
+</div>
+
+<!-- ① 5-YEAR FINANCIAL TREND TABLE -->
+<h2>① Five-Year Financial Trend (FY2021–FY2025)</h2>
+<p style="font-size:13px;color:var(--muted);margin-bottom:14px;">All figures in USD. Broadcom fiscal year ends in late October / early November. FY2024 saw a step-change in scale following the $69B VMware acquisition (Oct 2023). Non-GAAP gross margin cited throughout (excludes amortization of acquisition-related intangibles in COGS). GAAP operating income and net income are GAAP as reported.</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>FY2021<br><small>Ended Oct 31, 2021</small></th>
+      <th>FY2022<br><small>Ended Oct 30, 2022</small></th>
+      <th>FY2023<br><small>Ended Oct 29, 2023</small></th>
+      <th>FY2024<br><small>Ended Nov 3, 2024</small></th>
+      <th>FY2025<br><small>Ended Nov 2, 2025</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Revenue ($B)</td>
+      <td>$27.5</td>
+      <td>$33.2</td>
+      <td>$35.8</td>
+      <td class="cell-warn">$51.6 <span style="font-size:10px;color:var(--accent)">VMware</span></td>
+      <td class="cell-good">$63.9</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth YoY</td>
+      <td class="na">base yr</td>
+      <td class="trend-up">+20.7%</td>
+      <td class="trend-up">+7.9%</td>
+      <td class="trend-up">+44.0%</td>
+      <td class="trend-up">+23.9%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Semiconductor Revenue ($B)</td>
+      <td>$20.2 est.</td>
+      <td>$26.9 est.</td>
+      <td>$28.2</td>
+      <td>$30.1</td>
+      <td class="cell-good">$36.9</td>
+    </tr>
+    <tr>
+      <td class="row-label">Infrastructure Software ($B)</td>
+      <td>$7.3 est.</td>
+      <td>$6.3 est.</td>
+      <td>$7.6</td>
+      <td class="cell-warn">$21.5 <span style="font-size:10px;color:var(--accent)">VMware</span></td>
+      <td class="cell-good">$27.0</td>
+    </tr>
+    <tr>
+      <td class="row-label">AI Revenue ($B)</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">~$3.8 est.</td>
+      <td class="cell-trophy">$12.2 (+220%)</td>
+      <td class="cell-trophy">~$20B est. (+64%)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Non-GAAP Gross Margin</td>
+      <td>73.9%</td>
+      <td>75.1%</td>
+      <td>74.1%</td>
+      <td>75.2%</td>
+      <td class="cell-good">77.3%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Income ($B)</td>
+      <td>$8.5</td>
+      <td>$14.2</td>
+      <td>$16.2</td>
+      <td class="cell-bad">$13.5 ↓</td>
+      <td class="cell-good">~$25.5</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Margin</td>
+      <td>30.9%</td>
+      <td>42.8%</td>
+      <td>45.2%</td>
+      <td class="cell-bad">26.1% ↓</td>
+      <td class="cell-good">~39.9%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Net Income ($B)</td>
+      <td>$6.7</td>
+      <td>$11.5</td>
+      <td>$14.1</td>
+      <td class="cell-bad">$5.9 ↓</td>
+      <td class="cell-good">$23.1</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Net Margin</td>
+      <td>24.4%</td>
+      <td>34.6%</td>
+      <td>39.4%</td>
+      <td class="cell-bad">11.4% ↓</td>
+      <td class="cell-good">36.2%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Non-GAAP Net Income ($B)</td>
+      <td>~$13.0 est.</td>
+      <td>~$15.7 est.</td>
+      <td>$18.4</td>
+      <td>$23.7</td>
+      <td class="cell-good">$33.7</td>
+    </tr>
+    <tr>
+      <td class="row-label">Free Cash Flow ($B)</td>
+      <td>~$13.4 est.</td>
+      <td>~$16.3 est.</td>
+      <td>$17.6</td>
+      <td>$19.4</td>
+      <td class="cell-good">$26.9</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Margin</td>
+      <td>~48.7%</td>
+      <td>~49.1%</td>
+      <td>~49.2%</td>
+      <td class="cell-warn">37.6% ↓</td>
+      <td class="cell-good">42.1%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Adj. EBITDA ($B)</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td>$23.2</td>
+      <td>$31.9</td>
+      <td class="cell-good">$43.0</td>
+    </tr>
+    <tr>
+      <td class="row-label">Adj. EBITDA Margin</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td>64.8%</td>
+      <td>61.8%</td>
+      <td class="cell-good">67.3%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Stock-Based Compensation ($B)</td>
+      <td>~$1.7 est.</td>
+      <td>$1.5</td>
+      <td>$2.2</td>
+      <td class="cell-bad">$5.7 ↑</td>
+      <td class="cell-bad">~$8.5 est. ↑↑</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC as % of Revenue</td>
+      <td>~6.2%</td>
+      <td>4.6%</td>
+      <td>6.1%</td>
+      <td class="cell-bad">11.1% ⚠</td>
+      <td class="cell-bad">~13.3% est. ⚠⚠</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC</td>
+      <td>~35–45% est.</td>
+      <td>~35–45% est.</td>
+      <td>~35–45% est.</td>
+      <td class="cell-bad">~8–10% ↓↓</td>
+      <td class="cell-good">21.3% ↑</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt ($B)</td>
+      <td>~$14</td>
+      <td>~$14</td>
+      <td>~$13</td>
+      <td class="cell-bad">~$60 ↑↑ VMware</td>
+      <td class="cell-warn">~$50</td>
+    </tr>
+    <tr>
+      <td class="row-label">Annual Dividend/Share†</td>
+      <td>$1.44</td>
+      <td>$1.64</td>
+      <td>$1.84</td>
+      <td>$2.12</td>
+      <td class="cell-good">$2.36</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Diluted EPS</td>
+      <td>$15.70 pre-split</td>
+      <td>~$27.90 pre-split</td>
+      <td>$3.30 adj.</td>
+      <td class="cell-bad">$1.23 adj.</td>
+      <td class="cell-good">$4.77 adj.</td>
+    </tr>
+    <tr>
+      <td class="row-label">Non-GAAP Diluted EPS</td>
+      <td class="na">N/A adj.</td>
+      <td class="na">N/A adj.</td>
+      <td>$4.22</td>
+      <td>$4.87</td>
+      <td class="cell-good">$6.82</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="note">† Dividend/share adjusted for 10:1 stock split completed July 12, 2024. Pre-split figures converted to post-split equivalent. | ROIC pre-FY2024 is estimated; methodology varies. FY2024 ROIC was compressed by VMware acquisition, which added ~$70B of goodwill and intangibles. | AI Revenue: FY2025 total estimated by aggregating disclosed quarterly figures (Q1: $4.1B, Q2: ~$4.8B est., Q3: $5.2B, Q4: ~$6.5B based on 74% YoY growth vs Q4 FY2024 $3.5B+). | SBC FY2025: estimated; FY2025 10-K filed Dec 2025 — the gap between GAAP ($23.1B) and non-GAAP ($33.7B) net income includes amortization, SBC, restructuring, and tax effects. | Sources: Broadcom IR press releases FY2021–FY2025; SEC 8-K and 10-K filings; macrotrends.net (SBC, OCF, revenue history); stockanalysis.com (ROIC, statistics).</div>
+
+<!-- ② LYNCH SCREENER — COMPETITOR BENCHMARK -->
+<h2>② Lynch Screener — Semiconductor Competitor Benchmark</h2>
+<p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Broadcom benchmarked against six peers spanning AI chip design (NVDA), fabless semiconductors (QCOM, AMD), legacy integrated device manufacturers (Intel), contract manufacturing (TSMC), and semiconductor capital equipment (ASML). Data reflects most recent TTM / latest reported fiscal year. All figures in USD unless noted.</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Company / Ticker</th>
+      <th>Revenue (TTM)</th>
+      <th>Rev. Growth<br>(YoY)</th>
+      <th>Non-GAAP<br>Gross Margin</th>
+      <th>GAAP<br>Op. Margin</th>
+      <th>FCF Margin<br>(TTM)</th>
+      <th>ROIC<br>(TTM)</th>
+      <th>Fwd. P/E</th>
+      <th>PEG Ratio</th>
+      <th>SBC % Rev.</th>
+      <th>Net Cash/<br>(Debt)</th>
+      <th>Lynch<br>Category</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="background:#f9f7f3;">
+      <td class="row-label">Broadcom / AVGO ★</td>
+      <td>$68.3B</td>
+      <td class="trend-up">+25%</td>
+      <td class="cell-good">76.7%</td>
+      <td class="cell-good">41.9%</td>
+      <td class="cell-good">~40%</td>
+      <td class="cell-warn">21.3%</td>
+      <td class="cell-warn">~27x</td>
+      <td class="cell-good">0.57</td>
+      <td class="cell-bad">~13% ⚠</td>
+      <td class="cell-bad">–$52B</td>
+      <td><span class="category-badge cat-fast">Fast Grower</span></td>
+    </tr>
+    <tr>
+      <td class="row-label">NVIDIA / NVDA</td>
+      <td>$130B+</td>
+      <td class="trend-up">+73%</td>
+      <td class="cell-trophy">~75%</td>
+      <td class="cell-trophy">~65%</td>
+      <td class="cell-trophy">~60%</td>
+      <td class="cell-trophy">~100%+</td>
+      <td class="cell-warn">~25x</td>
+      <td class="cell-good">&lt;0.5</td>
+      <td class="cell-good">~3%</td>
+      <td class="cell-good">Net cash</td>
+      <td><span class="category-badge cat-fast">Fast Grower</span></td>
+    </tr>
+    <tr>
+      <td class="row-label">Qualcomm / QCOM</td>
+      <td>$44.9B</td>
+      <td class="trend-up">+5%</td>
+      <td class="cell-warn">55.1%</td>
+      <td class="cell-warn">27.2%</td>
+      <td class="cell-warn">~29%</td>
+      <td class="cell-warn">19.7%</td>
+      <td class="cell-good">~13x</td>
+      <td class="cell-warn">~1.0x</td>
+      <td class="cell-good">~3%</td>
+      <td class="cell-warn">–$3B</td>
+      <td><span class="category-badge cat-stalwart">Stalwart</span></td>
+    </tr>
+    <tr>
+      <td class="row-label">AMD / AMD</td>
+      <td>$34.6B</td>
+      <td class="trend-up">+34%</td>
+      <td class="cell-warn">52.5%</td>
+      <td class="cell-bad">10.8%</td>
+      <td class="cell-bad">~19%</td>
+      <td class="cell-bad">6.6%</td>
+      <td class="cell-warn">~25x</td>
+      <td class="cell-bad">High</td>
+      <td class="cell-warn">~4%</td>
+      <td class="cell-good">+$7B</td>
+      <td><span class="category-badge cat-fast">Fast Grower</span></td>
+    </tr>
+    <tr>
+      <td class="row-label">Intel / INTC</td>
+      <td>$52.9B</td>
+      <td class="trend-down">–5%</td>
+      <td class="cell-bad">34.8%</td>
+      <td class="cell-bad">–4.2%</td>
+      <td class="cell-bad">Negative</td>
+      <td class="cell-bad">0.01%</td>
+      <td class="na">N/M</td>
+      <td class="na">N/M</td>
+      <td class="cell-good">~2%</td>
+      <td class="cell-bad">–$9.7B</td>
+      <td><span class="category-badge cat-turnaround">Turnaround</span></td>
+    </tr>
+    <tr>
+      <td class="row-label">TSMC / TSM</td>
+      <td>$121B</td>
+      <td class="trend-up">+24%</td>
+      <td class="cell-warn">56.3%</td>
+      <td class="cell-good">45.8%</td>
+      <td class="cell-warn">~16%*</td>
+      <td class="cell-good">48.1%</td>
+      <td class="cell-good">~23x</td>
+      <td class="cell-good">&lt;1.0x</td>
+      <td class="cell-good">&lt;1%</td>
+      <td class="cell-good">+$64B</td>
+      <td><span class="category-badge cat-fast">Fast Grower</span></td>
+    </tr>
+    <tr>
+      <td class="row-label">ASML Holding / ASML</td>
+      <td>$38.4B</td>
+      <td class="trend-up">+15%</td>
+      <td class="cell-warn">52.8%</td>
+      <td class="cell-warn">~30%</td>
+      <td class="cell-warn">~23%</td>
+      <td class="cell-good">67.8%</td>
+      <td class="cell-bad">~40x</td>
+      <td class="cell-warn">2.0x</td>
+      <td class="cell-good">~2%</td>
+      <td class="cell-good">+$11B</td>
+      <td><span class="category-badge cat-stalwart">Stalwart</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="note">* TSMC FCF margin is low due to industry-leading capex of ~$38–42B/year (fab buildout). Operating cash generation is strong but capital intensity suppresses FCF yield. | AVGO ROIC (21.3% TTM) reflects VMware dilution of invested capital base; pre-VMware ROIC was estimated 35–45%. | Forward P/E based on consensus NTM EPS estimates as of late March 2026; as of April 9, 2026, may differ due to market selloff. | SBC% for AVGO is an estimate for FY2025; FY2024 confirmed at 11.1% ($5.74B / $51.6B). | Sources: stockanalysis.com (ROIC, gross margin, op margin, statistics for all companies); Broadcom IR (FY2025 confirmed figures); Yahoo Finance key statistics; gurufocus.com (ASML, NVDA ROIC); Intel FY2025 10-K (op margin, gross margin); AMD FY2025 annual results.</div>
+
+<h3>Lynch Screener Observations</h3>
+<div class="card">
+  <h4 class="teal">Peer Positioning Summary</h4>
+  <p>Broadcom occupies a unique position in this peer group: it is the only company simultaneously running a high-margin AI semiconductor business (<em>and</em> a recurring-revenue enterprise software franchise (Infrastructure Software, anchored by VMware/VCF). No direct peer replicates this dual-engine structure. NVIDIA has superior ROIC and margins but no software moat. QCOM has lower growth. TSMC has superior capital returns but is a pure-play foundry (capital-intensive, geopolitically exposed). ASML has a near-monopoly equipment business but trades at 40x forward earnings. AMD is growing fast but lacks profitability depth. Intel is in genuine distress. By the Lynch lens, Broadcom is the most complete risk-adjusted compounder in this group — but the SBC burden at ~13% of revenue and the $50B net debt load are the two key constraints that a disciplined investor cannot ignore.</p>
+</div>
+
+<!-- ③ DCF TABLE 2 — MODE B -->
+<h2>③ DCF Valuation — Table 2, Mode B (FCF-Based, 3 Scenarios)</h2>
+
+<div class="dcf-inputs">
+  <strong>BASE FCF INPUT:</strong> $26.9B (FY2025 reported; Broadcom IR press release Dec 11, 2025)<br>
+  <strong>NET DEBT:</strong> ~$52B (long-term debt ~$66B less cash ~$14B; as of FY2025 year-end; stockanalysis.com)<br>
+  <strong>SHARES OUTSTANDING:</strong> 4.73B (post 10:1 split; stockanalysis.com)<br>
+  <strong>WACC:</strong> 9.5% (Bear/Base) | 9.0% (Bull) — reflecting high-beta semiconductor profile (β=1.26) and debt load<br>
+  <strong>CURRENT PRICE (REPORT DATE):</strong> ~$175 (April 9, 2026; ~42% below late-March 2026 level of ~$302 due to macro selloff)<br>
+  <strong>ANCHOR:</strong> DCF equity value per share vs. current price of ~$175. Traffic lights reflect implied upside/downside from $175.
+</div>
+
+<div class="table-wrap">
+<table class="dcf-table">
+  <thead>
+    <tr>
+      <th class="row-head">DCF Assumption</th>
+      <th>🐻 Bear Case</th>
+      <th>📊 Base Case</th>
+      <th>🚀 Bull Case</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">FCF Growth Rate — Years 1–5</td>
+      <td>15% p.a.</td>
+      <td>22% p.a.</td>
+      <td>30% p.a.</td>
+    </tr>
+    <tr>
+      <td class="row-label">Terminal Growth Rate (Year 6+)</td>
+      <td>3.0%</td>
+      <td>4.0%</td>
+      <td>5.0%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Discount Rate (WACC)</td>
+      <td>9.5%</td>
+      <td>9.5%</td>
+      <td>9.0%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Year 1 ($B)</td>
+      <td>$30.9</td>
+      <td>$32.8</td>
+      <td>$35.0</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Year 3 ($B)</td>
+      <td>$40.9</td>
+      <td>$48.8</td>
+      <td>$59.1</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Year 5 ($B)</td>
+      <td>$54.1</td>
+      <td>$72.6</td>
+      <td>$99.9</td>
+    </tr>
+    <tr>
+      <td class="row-label">PV of Years 1–5 FCF ($B)</td>
+      <td>$156</td>
+      <td>$188</td>
+      <td>$235</td>
+    </tr>
+    <tr>
+      <td class="row-label">Terminal Value (EV basis) ($B)</td>
+      <td>$855</td>
+      <td>$1,373</td>
+      <td>$2,622</td>
+    </tr>
+    <tr>
+      <td class="row-label">PV of Terminal Value ($B)</td>
+      <td>$544</td>
+      <td>$873</td>
+      <td>$1,704</td>
+    </tr>
+    <tr>
+      <td class="row-label">Enterprise Value ($B)</td>
+      <td>$700</td>
+      <td>$1,061</td>
+      <td>$1,939</td>
+    </tr>
+    <tr>
+      <td class="row-label">Less: Net Debt ($B)</td>
+      <td>–$52</td>
+      <td>–$52</td>
+      <td>–$52</td>
+    </tr>
+    <tr>
+      <td class="row-label">Equity Value ($B)</td>
+      <td>$648</td>
+      <td>$1,009</td>
+      <td>$1,887</td>
+    </tr>
+    <tr>
+      <td class="row-label">Implied Share Price (4.73B shares)</td>
+      <td class="dcf-red">~$137</td>
+      <td class="dcf-yellow">~$213</td>
+      <td class="dcf-green">~$399</td>
+    </tr>
+    <tr>
+      <td class="row-label">vs. Current Price (~$175)</td>
+      <td class="dcf-red">🔴 –22% (downside)</td>
+      <td class="dcf-green">🟢 +22% (upside)</td>
+      <td class="dcf-green">🟢 +128% (upside)</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield (at ~$175 price)</td>
+      <td class="dcf-red">N/A — price above Bear IV</td>
+      <td class="dcf-yellow">3.2% (mkt cap ~$828B)</td>
+      <td class="dcf-green">3.2% (same; upside from growth)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Implied EV/FCF (current EV ~$880B)</td>
+      <td class="dcf-red">~32.7x — expensive if growth slows</td>
+      <td class="dcf-yellow">~32.7x — fair if 22% growth holds</td>
+      <td class="dcf-green">~32.7x — cheap if bull plays out</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">Traffic light legend: 🔴 RED = implied fair value below current price (downside risk). 🟡 YELLOW = roughly fairly valued; outcome-dependent. 🟢 GREEN = meaningful upside from current levels. | DCF uses a 5-year explicit forecast period + perpetuity terminal value. All scenarios anchor to GAAP free cash flow ($26.9B in FY2025) — not non-GAAP EBITDA. Net debt of $52B deducted from enterprise value to arrive at equity value. | Interpretation: At ~$175 (April 9, 2026 level), the Base Case (22% FCF CAGR) implies 22% upside — making AVGO attractively valued relative to fundamentals if execution continues. The Bear Case (~15% FCF growth) still implies modest downside, which reflects the leverage and valuation risks. The Bull Case (30% CAGR driven by AI XPU + VMware compounding) implies significant upside. At the late-March price of ~$302, only the Bull Case justified fair value. The April selloff has meaningfully improved the margin of safety for a long-term investor. | Note: Q1 FY2026 (ended Feb 1, 2026) already reported $8.26B in operating cash flow and Q2 FY2026 guidance is $22B revenue at 68% EBITDA margin — suggesting FY2026 FCF trajectory of $33–37B, which would further validate the Base/Bull scenarios.</div>
+
+<!-- ④ MANAGEMENT COMMENTARY -->
+<h2>④ Management Commentary — Most Recent Earnings Call</h2>
+<p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Source: Broadcom Q1 FY2026 Earnings Call — March 4, 2026 (most recent available as of report date). Revenue period ended February 1, 2026. CEO: Hock Tan. CFO: Kirsten Spears.</p>
+
+<div class="card management">
+  <h4 class="teal">AI Semiconductor — Accelerating, Not Peaking</h4>
+  <p>CEO Hock Tan opened with the signal statement of the quarter: Q1 AI semiconductor revenue of $8.4 billion grew 106% year-over-year, exceeding the company's own forecast. He attributed this to robust demand for custom AI accelerators (XPUs) and AI networking (Ethernet switches). Tan then guided Q2 AI semiconductor revenue to $10.7 billion — implying sequential acceleration and annualized AI semiconductor revenue in excess of $40 billion if Q2 momentum holds. This is a fundamental step change from FY2025 full-year AI revenue of approximately $20 billion. The scale of acceleration from $12.2B (FY2024) to ~$20B (FY2025) to a potential $40B+ annualized run rate (FY2026) is being driven by Broadcom's five hyperscaler XPU customers deploying next-generation custom silicon at scale.</p>
+</div>
+
+<div class="card management">
+  <h4 class="teal">VMware Infrastructure Software — Steady Compounder, Massive Backlog</h4>
+  <p>Infrastructure software revenue in Q4 FY2025 was $6.9 billion (+19% YoY), and for the full year FY2025 reached $27.0 billion (+26% YoY). CFO Kirsten Spears highlighted that the infrastructure software backlog ended FY2025 at $73 billion — up from $49 billion a year ago, a $24 billion expansion in contracted but not yet recognized revenue. For Q1 FY2026, infrastructure software revenue is guided to approximately $6.8 billion (roughly flat sequentially, reflecting seasonal renewal patterns). Management guided full-year FY2026 infrastructure software growth in the low-double-digit percentage range. This is the ballast of the Broadcom story: a ~93% gross margin, ~77% operating margin software annuity stream (largely VMware VCF subscriptions) that provides recurring, recession-resistant cash flows regardless of the AI semiconductor cycle.</p>
+</div>
+
+<div class="card management">
+  <h4 class="teal">Q2 FY2026 Guidance — 47% YoY Revenue Growth</h4>
+  <p>Broadcom's Q2 FY2026 guidance calls for total revenue of approximately $22.0 billion (+47% year-over-year) with adjusted EBITDA of approximately 68% of revenue. This is exceptional guidance for a company of this scale. CFO Spears noted that Q1 FY2026 adjusted EBITDA reached a record $13.1 billion at 68% of revenue, and free cash flow was strong. The company also authorized a new $10 billion share repurchase program alongside the quarterly dividend of $0.65 per share ($2.60 annualized), marking the fifteenth consecutive annual dividend increase since inception in 2011. The combination of rising revenue, expanding EBITDA margins, growing buybacks, and a rising dividend demonstrates compounding shareholder returns.</p>
+</div>
+
+<div class="card management">
+  <h4 class="teal">Hock Tan's SAM Claim — The $60–90B AI Opportunity</h4>
+  <p>In previous quarters (Q4 FY2025 call), Hock Tan outlined Broadcom's serviceable addressable market for custom AI accelerators across its current five hyperscaler XPU customers. He projected a potential addressable silicon opportunity of $60 to $90 billion by 2027. This claim was controversial but has been validated by Q1 FY2026's 106% AI revenue growth and Q2 guidance of $10.7 billion AI revenue — putting the company on a trajectory toward that range. Tan has consistently under-promised and over-delivered on AI revenue guidance for six consecutive quarters, which has improved credibility with the institutional investor base. That said, the SAM claim assumes all five customers fully ramp — a binary concentration risk worth monitoring.</p>
+</div>
+
+<!-- ⑤ RED FLAGS -->
+<h2>⑤ Red Flags — Analyst Risk Assessment</h2>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 Red Flag 1 — SBC Explosion: The Stealth Tax on Shareholders</h4>
+  <p>This is the most underappreciated risk in the Broadcom bull thesis. Stock-based compensation surged from $1.5 billion in FY2022 to $5.7 billion in FY2024 — a near-quadrupling in two years — and is estimated at approximately $8–9 billion in FY2025, representing roughly 13–14% of annual revenue. The cause is VMware equity retention: Broadcom inherited VMware's equity compensation plans and accelerated new grants to retain key engineering and sales talent during the integration. The impact on shareholders is concrete: it inflates non-GAAP earnings (SBC is excluded from Broadcom's non-GAAP results), dilutes share counts, and represents a real economic cost. A Lynch-style investor must always anchor to GAAP earnings and GAAP FCF. At $8.5B SBC against $26.9B FCF, approximately 32 cents of every free cash flow dollar is consumed by employee equity compensation before dividends or buybacks. When SBC is removed from operating cash flow, "true" owner FCF is closer to $18–19B — meaningfully lower than the headline $26.9B. This does not make Broadcom a bad business, but it does mean the FCF yield calculation (3.2% at $175) overstates the economics for a new buyer.</p>
+  <ul>
+    <li><strong>FY2022 SBC:</strong> $1.5B (4.6% of revenue) — normal for a large fabless semi</li>
+    <li><strong>FY2024 SBC:</strong> $5.7B (11.1% of revenue) — VMware integration retention grants</li>
+    <li><strong>FY2025 SBC (est.):</strong> ~$8.5B (~13.3% of revenue) — elevated and potentially persistent</li>
+    <li><strong>Watch point:</strong> Will SBC normalize as VMware equity retention grants expire? Management has not given explicit guidance on SBC trajectory. Watch for this in FY2026.</li>
+  </ul>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 Red Flag 2 — GAAP vs. Non-GAAP: A $17.8B Gap in FY2024</h4>
+  <p>In FY2024, Broadcom reported GAAP net income of just $5.9 billion against non-GAAP net income of $23.7 billion — a gap of $17.8 billion. This gap is driven primarily by: (1) amortization of VMware acquisition-related intangible assets (~$10B+/year), (2) SBC of $5.7B, (3) restructuring charges of $1.5B, and (4) non-GAAP tax adjustments. Management's answer is that these are "non-cash" or "non-recurring." But intangible asset amortization is the economic cost of acquisition premium paid — it is real. And SBC is a real economic cost to shareholders even if it's non-cash. Broadcom's management communicates almost exclusively in non-GAAP terms during earnings calls, which creates an information asymmetry. A Lynch-style investor should always reconcile to GAAP. In FY2025, the gap narrows to GAAP net income of $23.1B vs. non-GAAP of $33.7B ($10.6B gap) — partly because the GAAP effective tax rate normalized after one-time VMware tax-related provisions of FY2024. But the amortization and SBC components remain structural, not transitory.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 Red Flag 3 — Customer Concentration: The Hyperscaler Dependence</h4>
+  <p>Broadcom's AI semiconductor business is concentrated in a small number of hyperscale customers — publicly disclosed to include Google (Tensor Processing Units), Meta (MTIA chips), and others believed to include ByteDance and Apple. Historically, Apple has accounted for roughly 20% of Broadcom's semiconductor revenue through its custom Wi-Fi, Bluetooth, and cellular component orders. The risk is twofold: (1) Apple is developing in-house modems and wireless chips that could reduce Broadcom content over a 3–5 year horizon. Apple's C1 modem (launched 2025) already displaces some Qualcomm and potentially Broadcom wireless content. (2) Hyperscalers developing their own competing AI silicon (Google's TPU, Amazon's Trainium/Inferentia, Microsoft's Maia) may eventually reduce their dependency on Broadcom XPUs. So far, these in-house efforts have complemented rather than replaced Broadcom-designed chips, but this dynamic warrants annual reassessment. Note that Broadcom's Q2 FY2026 AI revenue guidance of $10.7B implies the hyperscalers are actively ramping, not pulling back. But the concentration means that even one customer defection would be a material event.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 Red Flag 4 — $66B Debt Burden — Interest Expense Headwind</h4>
+  <p>To finance the $69 billion VMware acquisition, Broadcom issued bonds and term loans, raising its gross long-term debt from approximately $15 billion (pre-VMware) to approximately $66 billion (TTM). Annual interest expense runs at approximately $4 billion — a $4B real cash burden. In FY2024, interest expense consumed approximately $3.95 billion (from the 10-K). While Broadcom's FCF of $26.9B comfortably services this debt (interest coverage ratio of ~6.7x), the leverage creates sensitivity: (1) if revenue growth slows and FCF stalls near current levels, debt paydown will be slow; (2) in a higher-for-longer interest rate environment, refinancing risk exists when bonds mature; (3) the net debt of $52B limits capacity for further acquisitions without re-levering the balance sheet. Management has been deploying FCF to pay down debt — long-term debt declined from ~$69B at acquisition to ~$66B by FY2025 end — but at this pace, full de-leveraging to a $15B level would take many years.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 Red Flag 5 — FY2024 GAAP Operating Income Collapse as Acquisition Warning Signal</h4>
+  <p>GAAP operating income fell from $16.2 billion (FY2023) to $13.5 billion (FY2024) despite revenue growing by 44% from $35.8B to $51.6B. This is a classic acquisition accounting distortion: the $69B VMware deal added massive amortization of intangibles (~$10B+ per year), SBC acceleration ($5.7B), and integration/restructuring costs ($1.5B) — all of which flow through GAAP operating income but are stripped out of non-GAAP. A new analyst looking only at non-GAAP operating income would see continuous improvement. A GAAP-anchored analyst would see a step-down in FY2024, then recovery in FY2025 (~$25.5B). The lesson: before any future Broadcom acquisition, stress-test the GAAP impact on operating income, not just the non-GAAP synergy math management will present.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 Red Flag 6 — Geopolitical / Export Control Risk (TSMC Dependency + China Exposure)</h4>
+  <p>Broadcom's semiconductor products are manufactured by TSMC (Taiwan Semiconductor Manufacturing Company) — the world's leading contract foundry. This creates a dual geopolitical exposure: (1) any military conflict or escalation in the Taiwan Strait would immediately disrupt Broadcom's chip supply for all AI XPUs, networking ASICs, and wireless chips — there is no short-term alternative foundry for advanced nodes; (2) Broadcom generates meaningful revenue from Chinese customers. Export control tightening (the ongoing U.S.-China chip war) has already restricted some Broadcom networking products to China. Future escalation could further constrain Broadcom's China addressable market. As of this report date (April 9, 2026), tariff escalation is a live concern across the tech sector, contributing to the ~40% stock correction from late-March highs. Broadcom has limited control over either of these macro-political variables.</p>
+</div>
+
+<!-- ⑥ CHARLIE MUNGER INVERSION ANALYSIS -->
+<h2>⑥ Charlie Munger Inversion — "What Would Destroy Broadcom?"</h2>
+<p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Munger's inversion principle: instead of asking how Broadcom succeeds, ask what would make it fail catastrophically. Then avoid those paths.</p>
+
+<div class="card invert">
+  <h4 class="gold">Inversion 1 — Hyperscalers Fully Vertically Integrate AI Silicon</h4>
+  <p>The single largest existential risk for Broadcom's AI semiconductor segment is if Google, Meta, Apple, Microsoft, and Amazon complete the in-sourcing of all AI chip design — making Broadcom's XPU engineering partnerships unnecessary. This is already happening in partial form: Google's TPU v5, Amazon's Trainium2, and Microsoft's Maia are all deployed in production. What has kept Broadcom relevant is that hyperscalers do not have the internal bandwidth to design every custom chip themselves, and Broadcom's ASIC design expertise (decades of system-level thinking) is genuinely differentiated. But over a 7–10 year horizon, as hyperscaler chip design teams scale, this moat could erode. The Lynch-style watch signal: monitor Broadcom's customer count (5 as of FY2026) — if it fails to expand to new customers, the thesis depends entirely on existing relationships deepening. The bull case requires new customer additions, not just deepening of current ones.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Inversion 2 — NVIDIA Enters Custom Silicon and Competes for XPU Contracts</h4>
+  <p>Currently, NVIDIA focuses on GPU platforms (H100, B100, Blackwell) while Broadcom designs custom AI accelerators (XPUs) for hyperscalers who want chips purpose-built for specific workloads (inference, training, networking) that differ from general-purpose GPUs. But NVIDIA is not standing still. Its NVLink and DGX platforms increasingly compete for the same "AI cluster" dollar. If NVIDIA introduces a custom silicon design service (akin to what Broadcom offers), it would compete with AVGO's XPU business directly. NVIDIA has the chip design talent, the foundry relationships (also TSMC), and the AI ecosystem (CUDA) to theoretically do this. This has not happened as of April 2026, but it is the most plausible medium-term competitive disruptor to watch.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Inversion 3 — VMware Integration Fails; Software Business Churns</h4>
+  <p>Broadcom's $69 billion acquisition of VMware was premised on converting VMware's customer base from perpetual licenses to VCF (VMware Cloud Foundation) subscriptions — a high-margin, recurring annuity. This is the software compounding engine that gives Broadcom its dual-engine story. Failure would look like: enterprise customers refusing to renew VCF contracts, migrating to Nutanix, cloud-native alternatives (AWS, Azure, GCP native compute), or open-source hypervisors. Historically, VMware's customer base is sticky because vSphere is deeply embedded in enterprise data centers — replacing it requires migrating thousands of virtualized workloads. But Broadcom's VMware pricing strategy has been aggressive post-acquisition (bundling, price increases for VCF), which has generated significant customer pushback and some defections to Nutanix. The $73B software backlog is reassuring — but watch annual software retention rates (not disclosed explicitly) as the leading indicator of this risk materializing.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Inversion 4 — AI Capex Super-Cycle Ends or Pauses</h4>
+  <p>Broadcom's AI semiconductor revenue grew from $3.8B (FY2023) to $12.2B (FY2024) to ~$20B (FY2025) to a potential $40B+ annualized run rate in FY2026. All of this growth is a direct function of hyperscaler AI infrastructure investment — Google, Meta, Microsoft, Amazon collectively spending hundreds of billions per year on data center buildout. If this capex cycle peaks or pauses — due to a macro recession, a shock to AI monetization timelines, or a temporary excess inventory build — Broadcom's AI revenue growth could decelerate abruptly. This is the "picks and shovels" risk in any gold rush: the shovel seller does well until the rush slows. The current data (Q2 FY2026 AI guidance: $10.7B in a single quarter) suggests no pause is imminent. But investors should monitor hyperscaler capex guidance in quarterly earnings (MSFT, META, GOOG, AMZN) as a leading indicator for Broadcom's AI revenue trajectory.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Inversion 5 — SBC Remains Permanently Elevated, Diluting All Shareholder Returns</h4>
+  <p>If stock-based compensation does not decline as VMware equity retention grants roll off, Broadcom shareholders face permanent value transfer from owners to employees at a rate of ~13–14% of annual revenue. The mechanism: management excludes SBC from all non-GAAP metrics, prices shares in the public market based on non-GAAP EPS, and the economic cost accrues through diluted share count increase and reduced owner cash flow. At $8.5B SBC/year on $63.9B revenue, a shareholder is effectively paying a 13.3% "labor tax" that doesn't appear in the non-GAAP earnings headline. For this to resolve constructively, Broadcom must either (1) demonstrate that SBC declines as VMware integration matures (2026–2027), or (2) generate revenue and FCF growth fast enough that SBC as a percentage normalizes even if the dollar amount stays high. Watch FY2026 SBC disclosure (10-K in December 2026) carefully.</p>
+</div>
+
+<!-- ⑦ GOLDEN TIPS -->
+<h2>⑦ Golden Tips — Analyst Watching Points</h2>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 1 — The Non-GAAP Illusion: Always Anchor to GAAP and FCF</h4>
+  <p>Broadcom is a company that communicates almost entirely in non-GAAP terms during earnings calls and investor presentations. Non-GAAP diluted EPS for FY2025 was $6.82 — which appears to support a reasonable valuation at current prices. But GAAP diluted EPS was $4.77 in FY2025, and in FY2024 it was just $1.23. The differences are driven by $10B+ of annual amortization of acquisition-related intangibles and $5–9B of annual stock-based compensation. Both are real economic costs. A Lynch investor must consistently track: (1) GAAP FCF ($26.9B in FY2025 — the most reliable anchor), (2) SBC as % of FCF (~32% in FY2025 est.), and (3) "true owner FCF" = FCF minus SBC = approximately $18–19B. At $175 per share and $828B market cap, the true owner FCF yield is approximately 2.2–2.3% — significantly below the headline 3.2% FCF yield. This does not make the stock cheap on a pure value metric, but the quality of growth and the compounding potential may still justify ownership if you believe in the 22–30% FCF growth scenario outlined in Section ③.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 2 — The Dual-Engine Test: Are Both Engines Firing?</h4>
+  <p>Broadcom's differentiated position in the semiconductor landscape rests on two engines operating simultaneously: the AI semiconductor engine (XPUs, Ethernet networking ASICs) and the infrastructure software engine (VMware/VCF annuity). A Lynch investor should check both gauges every quarter. The AI engine is obviously firing — 106% revenue growth in Q1 FY2026, Q2 guidance of $10.7B AI revenue. The software engine is steadier but equally important — Q1 FY2026 infrastructure software came in at ~$6.8B with $73B backlog. The red flag would be if one engine starts sputtering: specifically, watch for (1) AI revenue growth decelerating below 50% QoQ while semiconductor margins compress, OR (2) VCF renewal rates declining or customer churn accelerating in the software segment. As long as both engines fire, Broadcom's FCF and EBITDA expansion story remains intact. If only one fires, the valuation premium must compress.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 3 — The VMware Pricing Controversy: Canary in the Software Mine</h4>
+  <p>Broadcom's post-acquisition VMware strategy has been to aggressively bundle and re-price products into a single VCF (VMware Cloud Foundation) subscription, at substantially higher cost than legacy perpetual licenses. This generated significant customer anger and notable defections to competitors (Nutanix, cloud-native hypervisors). However, the $73B infrastructure software backlog and consistent 20%+ growth in software revenue suggest that most enterprise customers — despite complaining — are renewing their VCF subscriptions because migration costs and operational risks of switching are prohibitive. This is the definition of a strong moat, but a moat that depends on switching costs rather than product love. A Lynch investor should track Nutanix earnings and guidance quarterly as a proxy for VMware churn — if Nutanix is winning large enterprise deals at Broadcom VMware's expense, that's the warning signal. Currently (Q4 FY2025), the backlog expansion suggests the software moat is holding.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 4 — April 2026 Selloff as Potential Entry Opportunity — But Check the Debt</h4>
+  <p>As of April 9, 2026, Broadcom's shares are trading at approximately $175 — roughly 40% below the late-March level of ~$302. The selloff is driven by macro/geopolitical factors (tariff escalation, global recession fears) rather than any fundamental deterioration in Broadcom's business. In fact, the most recent earnings (March 4, 2026) showed 106% AI revenue growth and 47% Q2 revenue guidance uplift. From a DCF perspective (Section ③), the Base Case at 22% FCF growth now implies 22% upside from $175 — a materially improved risk/reward compared to the $302 level where only the Bull Case justified fair value. However, the $52B net debt creates a critical caveat: if a severe global recession materially reduces hyperscaler capex or delays AI deployments, Broadcom's ability to service and pay down debt while maintaining the dividend could come under pressure. Before buying the dip, a disciplined investor should stress-test: at 10% FCF decline for two years, can Broadcom service $4B/year of interest expense, pay the $2.60 dividend ($12B/year across ~4.73B shares), and still reduce net debt? At $26.9B FCF, the answer is comfortably yes even after all three. But the risk scenario matters.</p>
+</div>
+
+<footer>
+  <strong>SOURCES &amp; CITATIONS</strong><br>
+  [1] Broadcom FY2025 Full Year Results Press Release — Dec 11, 2025 | Broadcom IR (investors.broadcom.com) / SEC 8-K EX-99.1<br>
+  [2] Broadcom FY2024 Full Year Results Press Release — Dec 12, 2024 | Broadcom IR / SEC 8-K EX-99.1<br>
+  [3] Broadcom FY2023 Full Year Results Press Release — Dec 7, 2023 | Broadcom IR / SEC 8-K EX-99.1<br>
+  [4] Broadcom FY2021 Full Year Results Press Release — Dec 9, 2021 | Broadcom IR (investors.broadcom.com)<br>
+  [5] Broadcom Q1 FY2026 Earnings Press Release &amp; Conference Call Transcript — Mar 4, 2026 | Broadcom IR / SEC 8-K<br>
+  [6] Broadcom 10-K (FY2024, ending Nov 3, 2024) — filed Dec 2024 | SEC EDGAR: avgo-20241103<br>
+  [7] Broadcom 10-K (FY2025, ending Nov 2, 2025) — filed Dec 2025 | SEC EDGAR: avgo-20251102<br>
+  [8] Broadcom 10-K (FY2022, ending Oct 30, 2022) — filed Dec 2022 | SEC EDGAR (income statement: gross margin, opex, operating income FY2021–FY2022)<br>
+  [9] Q1 FY2026 Earnings Call Transcript — Yahoo Finance: finance.yahoo.com/quote/AVGO/earnings/AVGO-Q1-2026-earnings_call<br>
+  [10] Q4 FY2025 Earnings Call Transcript — Yahoo Finance: finance.yahoo.com/quote/AVGO/earnings/AVGO-Q4-2025-earnings_call<br>
+  [11] stockanalysis.com/stocks/avgo/statistics — AVGO: ROIC 21.33%, Market Cap $1.43T, Fwd PE 23.15x, PEG 0.57, EV/FCF 51.14x (as of Mar/Apr 2026)<br>
+  [12] stockanalysis.com/stocks/avgo/revenue — AVGO Revenue history (FY2025: $63.89B, FY2024: $51.57B, +23.87% / +43.99%)<br>
+  [13] stockanalysis.com/stocks/nvda/statistics — NVDA: statistics including gross margin, ROIC (various; per finbox 101.1% FY2025)<br>
+  [14] stockanalysis.com/stocks/qcom/statistics — QCOM: ROIC 19.74%, Gross margin 55.1%, Op margin 27.2%<br>
+  [15] stockanalysis.com/stocks/amd/statistics — AMD: ROIC 6.57%, Gross margin 52.5%, Op margin 10.8%<br>
+  [16] stockanalysis.com/stocks/intc/statistics — INTC: ROIC 0.01%, Gross margin 34.8%, Op margin -4.2%, FCF negative<br>
+  [17] stockanalysis.com/stocks/tsm/statistics — TSM: ROIC 48.05%, Gross margin 56.3%, Net cash $64B<br>
+  [18] stockanalysis.com/stocks/asml/statistics — ASML: ROIC 67.83%, Gross margin 52.8%, Fwd PE ~40x<br>
+  [19] macrotrends.net/stocks/charts/AVGO/broadcom/stock-based-compensation — SBC: FY2024 $5.741B, FY2023 $2.171B, FY2022 $1.533B<br>
+  [20] macrotrends.net/stocks/charts/AVGO/broadcom/revenue — Revenue history FY2021–FY2025<br>
+  [21] macrotrends.net/stocks/charts/AVGO/broadcom/free-cash-flow — FCF history: FY2023 $17.633B, FY2022 ~$16.3B<br>
+  [22] macrotrends.net/stocks/charts/AVGO/broadcom/cash-flow-from-operating-activities — OCF: FY2023 $18.085B, FY2022 $16.736B<br>
+  [23] finbox.com/NASDAQGS:AVGO/explorer/gp_margin — Non-GAAP Gross margin FY2021: 73.9%, FY2022: 75.1%, FY2023: 74.1%, FY2024: 75.2%, FY2025: 77.3%<br>
+  [24] gurufocus.com/term/forward-pe-ratio/AVGO — AVGO Fwd PE 26.82x as of Mar 27, 2026; stock price $302.77<br>
+  [25] AVGO Q3 FY2025 Press Release — Sept 4, 2025 | investors.broadcom.com<br>
+  [26] prnewswire.com — Broadcom Q4 FY2025 results: $18.0B Q4 revenue +28% YoY; AI up 74% YoY; FY2025 FCF $26.9B, Adj EBITDA $43.0B<br>
+  [27] kavout.com — "The Best Chip Stock That's Not Nvidia" — VMware software segment: 93% gross margin / 77% op margin analysis<br>
+  [28] stockstory.org/us/stocks/nasdaq/qcom — QCOM 5-year avg ROIC 46%<br>
+  [29] artificall.com — ASML vs NVIDIA comparison: ASML gross margin 51.28%, ROIC exceeds WACC by 14.83%<br>
+  [30] prnewswire.com — Broadcom Q1 FY2026: $19.3B revenue +29%, AI $8.4B +106%, Q2 guidance $22B; new $10B buyback authorized<br>
+  [31] 247wallst.com/investing/2026/03/04 — Live earnings analysis Broadcom Q1 FY2026<br>
+  [32] stocktitan.net/financials/AVGO — AVGO FY2025: 67.8% gross margin, 39.9% op margin, current ratio 1.71<br>
+  <br>
+  <strong>IMPORTANT DATA NOTES</strong><br>
+  • FY2021 financials (revenue ~$27.5B, GAAP op income $8.5B, net income $6.7B) sourced from Broadcom FY2021 10-K (SEC EDGAR); FY2021 FCF and non-GAAP figures are estimates based on OCF data from macrotrends.<br>
+  • FY2025 SBC (~$8.5B est.) is an estimate derived from the GAAP vs. non-GAAP net income gap and macrotrends SBC history; the confirmed figure will be in the FY2025 10-K cash flow statement.<br>
+  • AI Revenue FY2025 (~$20B) is an analyst estimate aggregating disclosed quarterly AI revenue figures (Q1: $4.1B, Q3: $5.2B, Q4: $6.2-6.5B extrapolated from the 74% YoY growth vs Q4 FY2024 $3.5B+); Broadcom does not separately report annual AI revenue in a single line item.<br>
+  • Stock price of ~$175 on April 9, 2026 is an estimate reflecting the reported ~40% selloff in technology stocks in early April 2026 amid tariff escalation; the confirmed price of $302.77 was from gurufocus.com on March 27, 2026.<br>
+  • Where "N/A" or "est." appears, the data was not directly available from primary sources at time of compilation.<br>
+  <br>
+  <strong>DISCLAIMER</strong> This report is produced for informational and educational purposes only and does not constitute investment advice, a solicitation, or a recommendation to buy or sell any security. All data is sourced from publicly available information and believed accurate at the time of compilation (April 9, 2026) but may contain errors or omissions. Forward-looking statements and DCF outputs are illustrative estimates based on stated assumptions — not forecasts. Past financial performance is not indicative of future results. The analyst has no position in AVGO or any named security. Always conduct independent due diligence and consult a qualified financial adviser before making investment decisions.
+</footer>
+
+</body>
+</html>

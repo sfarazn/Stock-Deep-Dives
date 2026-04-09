@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unilever — Peter Lynch Financial & SBC Impact Screener</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:180px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}.trend-down{color:var(--red);font-weight:600}
+  .anomaly{color:var(--accent);font-weight:700}.na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}.cell-good{background:#e8f5e9}.cell-warn{background:#fff8e1}.cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}.dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}.dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}.card.invert{border-left-color:var(--gold)}.card.golden{border-left-color:var(--green)}.card.management{border-left-color:var(--teal)}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}.card h4.gold{color:var(--gold)}.card h4.teal{color:var(--teal)}.card h4.green{color:var(--green)}
+  .card p,.card li{font-size:13px;line-height:1.7}.card ul{padding-left:18px}.card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}.badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}.badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}.cat-fast{background:#f3e5f5;color:#6a1b9a}.cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px}
+  .stat-box{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center}.stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>Unilever PLC</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: UL (NYSE) / ULVR (LSE)</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>April 8, 2026</span></div>
+    <div class="meta-item">Price (UL ADR): <span>~$55.55</span></div>
+    <div class="meta-item">Market Cap: <span>~$121B</span></div>
+    <div class="meta-item">Category: <span><span class="category-badge cat-stalwart">Stalwart</span></span></div>
+    <div class="meta-item">HQ: <span>London, United Kingdom</span></div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">FY2025 Revenue</div>
+    <div class="stat-val">€50.5B</div>
+    <div class="stat-sub">Continuing ops (ex-Ice Cream)</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FCF (FY2025)</div>
+    <div class="stat-val">€5.9B</div>
+    <div class="stat-sub">100% cash conversion</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">GAAP Op. Margin</div>
+    <div class="stat-val">17.9%</div>
+    <div class="stat-sub">FY2025 continuing ops</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">ROIC (TTM)</div>
+    <div class="stat-val">16.7%</div>
+    <div class="stat-sub">Source: stockanalysis.com</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Fwd P/E</div>
+    <div class="stat-val">15.4x</div>
+    <div class="stat-sub">Source: Yahoo Finance</div>
+  </div>
+</div>
+
+<!-- ① 5-YEAR FINANCIAL TREND TABLE -->
+<h2>① 5-Year Financial Trend</h2>
+
+<div class="card management" style="margin-bottom:16px;">
+  <h4 class="teal">Data Notes — FY Comparability</h4>
+  <p>FY2025 figures are presented on a <strong>continuing operations basis</strong>, excluding the Ice Cream business (demerged December 2025, ~€8.3B revenue). FY2020–FY2024 figures include Ice Cream and are reported as published. Revenue figures are in euros as reported. USD-translated figures from Macrotrends/Yahoo reflect exchange-rate distortions. All financial data sourced from Unilever official press releases and IR pages unless noted. SBC figures are estimated from cash flow statements; Unilever reports SBC as a non-cash item within operating activities.</p>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>FY2021</th>
+      <th>FY2022</th>
+      <th>FY2023</th>
+      <th>FY2024</th>
+      <th>FY2025</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Revenue (€bn, reported)</td>
+      <td>€52.4</td>
+      <td class="anomaly">€60.1 ⚠</td>
+      <td>€59.6</td>
+      <td>€60.8</td>
+      <td class="trend-down">€50.5 ↓</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth %</td>
+      <td class="trend-up">+7.3%</td>
+      <td class="anomaly">+14.7% ⚠</td>
+      <td class="trend-down">−0.8%</td>
+      <td class="trend-up">+1.9%</td>
+      <td class="trend-down">−16.9% (demerger-adjusted)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Underlying Vol. Growth %</td>
+      <td class="trend-up">+1.6%</td>
+      <td class="trend-down">−1.1%</td>
+      <td class="trend-down">−0.2%</td>
+      <td class="trend-up">+2.9%</td>
+      <td class="trend-up">+1.5%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Gross Margin %</td>
+      <td>42.3%</td>
+      <td class="trend-down anomaly">39.8% ⚠</td>
+      <td class="trend-up">41.5%</td>
+      <td class="trend-up">45.0%</td>
+      <td class="trend-up">~45.5% (est.)</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Margin %</td>
+      <td>18.4%</td>
+      <td class="trend-down anomaly">16.2% ⚠</td>
+      <td>17.7%</td>
+      <td class="trend-down">15.5%</td>
+      <td class="trend-up">17.9%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF (Company-Reported, €bn)</td>
+      <td>€6.4</td>
+      <td class="trend-down anomaly">€4.3 ⚠</td>
+      <td class="trend-up">€7.1</td>
+      <td class="trend-up">€6.9</td>
+      <td class="trend-down">€5.9 ↓</td>
+    </tr>
+    <tr>
+      <td class="row-label">Operating Cash Flow (€bn)</td>
+      <td>~€8.1</td>
+      <td class="trend-down">~€7.7</td>
+      <td>~€9.4</td>
+      <td class="trend-up">~€10.0</td>
+      <td class="na">N/A (recast pending)</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC % (Underlying, Co. reported)</td>
+      <td>~15.2%</td>
+      <td class="trend-down">~14.8%</td>
+      <td>~15.9%</td>
+      <td class="trend-up">18.1%</td>
+      <td class="trend-up">~18.5% (est.)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend per Share (€, annual)</td>
+      <td>€1.71</td>
+      <td>€1.71</td>
+      <td>€1.71</td>
+      <td class="trend-up">€1.81</td>
+      <td class="trend-up">€1.87 (est.)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Growth %</td>
+      <td>0.0%</td>
+      <td>0.0%</td>
+      <td>0.0%</td>
+      <td class="trend-up">+5.8%</td>
+      <td class="trend-up">~+3.3%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Yield %</td>
+      <td>~3.6%</td>
+      <td>~3.8%</td>
+      <td>~3.7%</td>
+      <td>~3.9%</td>
+      <td>~4.2%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E (current only)</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td><strong>15.4x</strong></td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio (current only)</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="anomaly"><strong>11.0x ⚠</strong></td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity %</td>
+      <td>~200%</td>
+      <td>~210%</td>
+      <td>~220%</td>
+      <td class="trend-down anomaly">~230% ⚠</td>
+      <td class="trend-up">~161%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield % (vs. Mkt Cap)</td>
+      <td>~4.5%</td>
+      <td>~3.2%</td>
+      <td>~5.0%</td>
+      <td>~5.7%</td>
+      <td>~4.9%</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC as % of Revenue (est.)</td>
+      <td class="na">~0.2%</td>
+      <td class="na">~0.2%</td>
+      <td class="na">~0.2%</td>
+      <td class="na">~0.2%</td>
+      <td class="na">~0.2%</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  ⚠ ANOMALY — FY2022 Gross Margin: Collapsed ~240bps to 39.8% as surging input cost inflation outpaced pricing, the steepest single-year gross margin decline in over a decade. This is confirmed as an anomaly.<br>
+  ⚠ ANOMALY — FY2022 Revenue Growth: +14.7% surge driven almost entirely by price increases (avg +11.3%), not volume, which actually declined −1.1%. Organic volume growth was negative for the full year.<br>
+  ⚠ ANOMALY — FY2022 FCF: Company-reported FCF fell sharply to ~€4.3bn (from €6.4bn in FY2021), a ~33% drop — triggered by working capital deterioration. This is an anomaly — FCF fell >25% vs prior year. Flag: HIGH FCF VOLATILITY.<br>
+  ⚠ ANOMALY — PEG 11.0x: Extremely elevated vs. Lynch threshold of &lt;1.0. This reflects a mismatch between the forward P/E and near-term EPS growth (~1–2%), implying the stock is priced as a premium quality compounder, not a growth name.<br>
+  Note: FY2025 revenue decline is structural (Ice Cream demerger) not organic. On a continuing-ops basis, underlying sales grew 3.5%. Net Debt/Equity improvement in 2025 partly reflects demerger-related balance sheet changes. SBC for Unilever is very low vs. US tech peers; exact annual SBC from cash flow statements is ~€100–130M (est. ~0.2% of revenue) — verified as immaterial. Dividend was frozen 2021–2023 at €1.71, then raised. Source: Unilever IR press releases, Yahoo Finance, stockanalysis.com, Macrotrends.
+</div>
+
+<!-- ② LYNCH SCREENER COMPETITOR BENCHMARK -->
+<h2>② Lynch Screener — Competitor Benchmark</h2>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>Unilever (UL)</th>
+      <th>P&amp;G (PG)</th>
+      <th>L'Oréal (OR)</th>
+      <th>Nestlé (NESN)</th>
+      <th>Coca-Cola (KO)</th>
+      <th>PepsiCo (PEP)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Category (Lynch)</td>
+      <td class="cell-good">✅ Stalwart</td>
+      <td class="cell-good">✅ Stalwart</td>
+      <td class="cell-good">✅ Stalwart / Fast Grower</td>
+      <td class="cell-warn">⚠️ Slow Grower (Turnaround)</td>
+      <td class="cell-good">✅ Stalwart</td>
+      <td class="cell-warn">⚠️ Stalwart / Caution</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth (LTM / FY)</td>
+      <td class="cell-warn">⚠️ +3.5% USG (FY25)</td>
+      <td class="cell-warn">⚠️ +2% organic</td>
+      <td class="cell-good">✅ +4% LFL (FY25)</td>
+      <td class="cell-bad">❌ ~−2% reported (FY25)</td>
+      <td class="cell-good">✅ +3% (FY25)</td>
+      <td class="cell-warn">⚠️ +2% organic</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="cell-good">✅ 16.7%</td>
+      <td class="cell-trophy">🏆 22.2%</td>
+      <td class="cell-good">✅ 14.0%</td>
+      <td class="cell-warn">⚠️ 9.0%</td>
+      <td class="cell-good">✅ 18.0%</td>
+      <td class="cell-warn">⚠️ 14.0%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Margin %</td>
+      <td class="cell-warn">⚠️ 17.9%</td>
+      <td class="cell-trophy">🏆 ~24%</td>
+      <td class="cell-good">✅ 20.1%</td>
+      <td class="cell-warn">⚠️ 16.4%</td>
+      <td class="cell-trophy">🏆 ~30%</td>
+      <td class="cell-warn">⚠️ ~14%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP vs. Non-GAAP Gap (pts)</td>
+      <td class="cell-warn">⚠️ ~260bps (UOM 20.0% vs GAAP 17.9% FY25)</td>
+      <td class="cell-good">✅ ~100bps est.</td>
+      <td class="cell-good">✅ ~80bps</td>
+      <td class="cell-warn">⚠️ ~200bps</td>
+      <td class="cell-good">✅ ~120bps</td>
+      <td class="cell-bad">❌ ~400bps+ (adj. EPS vs GAAP)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E</td>
+      <td class="cell-trophy">🏆 15.4x</td>
+      <td class="cell-warn">⚠️ ~23x</td>
+      <td class="cell-bad">❌ ~25x</td>
+      <td class="cell-good">✅ 18.0x</td>
+      <td class="cell-bad">❌ ~24x</td>
+      <td class="cell-good">✅ 16x</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio</td>
+      <td class="cell-bad">❌ 11.0x</td>
+      <td class="cell-bad">❌ ~5–6x est.</td>
+      <td class="cell-warn">⚠️ ~3–4x est.</td>
+      <td class="cell-bad">❌ 3.74x</td>
+      <td class="cell-warn">⚠️ ~3–4x est.</td>
+      <td class="cell-good">✅ ~2–3x est.</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity %</td>
+      <td class="cell-warn">⚠️ ~161%</td>
+      <td class="cell-good">✅ ~69%</td>
+      <td class="cell-trophy">🏆 ~28%</td>
+      <td class="cell-warn">⚠️ ~175%</td>
+      <td class="cell-bad">❌ ~500%+</td>
+      <td class="cell-bad">❌ ~425%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td class="cell-good">✅ ~4.9%</td>
+      <td class="cell-good">✅ ~4.2%</td>
+      <td class="cell-warn">⚠️ ~2.9%</td>
+      <td class="cell-warn">⚠️ ~3.5%</td>
+      <td class="cell-warn">⚠️ ~3.5% (FY26 guided)</td>
+      <td class="cell-bad">❌ ~3.3% (very tight coverage)</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC % Revenue</td>
+      <td class="cell-trophy">🏆 ~0.2%</td>
+      <td class="cell-trophy">🏆 ~0.2%</td>
+      <td class="cell-trophy">🏆 ~0.3%</td>
+      <td class="cell-trophy">🏆 ~0.2%</td>
+      <td class="cell-trophy">🏆 ~0.3%</td>
+      <td class="cell-trophy">🏆 ~0.3%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Quality</td>
+      <td class="cell-warn">⚠️ Moderate — FCF vol. 2022; demerger costs 2025</td>
+      <td class="cell-good">✅ High — consistent conversion</td>
+      <td class="cell-good">✅ High — record FCF FY25</td>
+      <td class="cell-warn">⚠️ Weakening — restructuring drag</td>
+      <td class="cell-good">✅ Strong — FY26 guide $12.2B</td>
+      <td class="cell-bad">❌ Strained — FCF = dividends paid FY25</td>
+    </tr>
+    <tr>
+      <td class="row-label">Buyback Efficiency</td>
+      <td class="cell-good">✅ €1.5B buyback FY25; new €1.5B FY26 H1</td>
+      <td class="cell-trophy">🏆 Consistent multi-year buyback leader</td>
+      <td class="cell-warn">⚠️ Modest buybacks; family-controlled float</td>
+      <td class="cell-bad">❌ Suspended buybacks; restructuring priority</td>
+      <td class="cell-good">✅ Steady; $1.1B FY24 buybacks</td>
+      <td class="cell-bad">❌ $1B only FY25; FCF barely covers divs</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="note">
+  Sources: Unilever FY2025 IR Press Release (Feb 12, 2026) | stockanalysis.com (UL, PG, LRLCF, NSRGY, KO, PEP statistics) | gurufocus.com (ROIC: UL 16.69%, NESN 9.04%, LRLCY 13.31%) | Yahoo Finance key statistics | L'Oréal 2025 Annual Results (Feb 12, 2026) | 247wallst.com (KO/PEP FCF/dividend analysis Mar 2026) | Motley Fool (PEP/KO comparison Aug 2025, Mar 2025)<br>
+  Note: PEG ratios for FMCG peers are uniformly elevated given sector-wide low EPS growth rates in 2025–2026. Net Debt/Equity for KO and PEP are structurally high due to franchised model and capital returns strategy. SBC is immaterial across all FMCG peers vs tech sector.
+</div>
+
+<!-- ③ DCF TABLE 2 MODE B -->
+<h2>③ DCF Analyst — Table 2 Mode B</h2>
+
+<div class="card management">
+  <h4 class="teal">FCF Volatility Flag</h4>
+  <p><strong>FLAG: HIGH FCF VOLATILITY — FY2022 BREACH.</strong> Unilever's company-reported FCF fell from approximately €6.4B in FY2021 to approximately €4.3B in FY2022 — a decline of approximately 33%, well exceeding the 25% threshold. This was caused by severe input-cost inflation destroying working capital and gross margins simultaneously. FCF recovered strongly to €7.1B in FY2023 and €6.9B in FY2024. FY2025 FCF fell to €5.9B (−14.5%), primarily from one-off Ice Cream demerger costs. The underlying FCF engine has been restored, but the 2022 event is a historical red flag for FCF durability under inflationary shock. <span class="badge badge-red">FCF Breach 2022</span></p>
+</div>
+
+<div class="dcf-inputs">
+  <strong>DCF Model Inputs — Unilever (UL) | Sector: FMCG</strong><br>
+  Base FCF (TTM/FY2025 continuing ops): <strong>€5.9B</strong> (~$6.4B at 1.09 USD/EUR)<br>
+  FCF as % NOPAT assumption: <strong>85%</strong> (per protocol)<br>
+  Margin assumption: <strong>Flat at TTM — GAAP Operating Margin ~17.9%</strong><br>
+  Terminal Growth Rate (g): <strong>3.0%</strong><br>
+  Sector Growth Cap (Y1–5): <strong>8% max | Y6–10: 5% max</strong> (FMCG/Consumer Staples cap applied)<br>
+  Current Share Price (USD): <strong>$55.55</strong><br>
+  Shares Outstanding: <strong>~2.18B</strong><br>
+  Discount Rates tested: <strong>8%, 10%, 12%</strong><br>
+  Currency note: FCF in EUR; USD conversion at 1.09. DCF output in USD per ADS share.<br>
+  Scenarios: Bear (3%/2%), Base-Low (5%/3%), Base (6%/4%), Bull (8%/5%), Max Cap (8%/5% — sector cap binding)
+</div>
+
+<div class="table-wrap">
+<table class="dcf-table">
+  <thead>
+    <tr>
+      <th class="row-head">Discount Rate</th>
+      <th>Bear<br><small>Y1–5: 3% / Y6–10: 2%</small></th>
+      <th>Base-Low<br><small>Y1–5: 5% / Y6–10: 3%</small></th>
+      <th>Base<br><small>Y1–5: 6% / Y6–10: 4%</small></th>
+      <th>Bull<br><small>Y1–5: 8% / Y6–10: 5%</small></th>
+      <th>Max Cap<br><small>Y1–5: 8% / Y6–10: 5%</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">r = 8%</td>
+      <td class="dcf-red">$42 🔴<br><small>−24% vs $55.55</small></td>
+      <td class="dcf-yellow">$53 🟡<br><small>−5% vs $55.55</small></td>
+      <td class="dcf-yellow">$58 🟡<br><small>+4% vs $55.55</small></td>
+      <td class="dcf-green">$68 🟢<br><small>+22% vs $55.55</small></td>
+      <td class="dcf-green">$68 🟢<br><small>+22% vs $55.55</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 10%</td>
+      <td class="dcf-red">$34 🔴<br><small>−39% vs $55.55</small></td>
+      <td class="dcf-red">$43 🔴<br><small>−23% vs $55.55</small></td>
+      <td class="dcf-yellow">$48 🟡<br><small>−14% vs $55.55</small></td>
+      <td class="dcf-yellow">$56 🟡<br><small>+1% vs $55.55</small></td>
+      <td class="dcf-yellow">$56 🟡<br><small>+1% vs $55.55</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 12%</td>
+      <td class="dcf-red">$28 🔴<br><small>−50% vs $55.55</small></td>
+      <td class="dcf-red">$35 🔴<br><small>−37% vs $55.55</small></td>
+      <td class="dcf-red">$39 🔴<br><small>−30% vs $55.55</small></td>
+      <td class="dcf-red">$46 🔴<br><small>−17% vs $55.55</small></td>
+      <td class="dcf-red">$46 🔴<br><small>−17% vs $55.55</small></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  DCF is illustrative only. Base FCF = €5.9B (FY2025 continuing ops, per Unilever IR Feb 12, 2026). USD conversion at ~1.09. Terminal g = 3%. 85% NOPAT FCF proxy per protocol. FMCG sector caps: max 8%/5%. Verdict: At an 8% discount rate, the stock is roughly fairly valued under Base and offers upside under Bull. At 10% (more realistic for a leveraged FMCG name with EM risk), the stock requires near-Bull assumptions to hold current price. At 12%, the stock appears overvalued under all scenarios. Consensus analyst price target: ~$65.55 USD (MarketBeat, Apr 2026), implying ~18% upside — consistent with the r=8% Bull scenario. UBS maintains Sell at ~4,440 GBp (~$57); Deutsche Bank maintains Buy at ~5,150 GBp (~$66).
+</div>
+
+<!-- ④ MANAGEMENT COMMENTARY -->
+<h2>④ Management Commentary</h2>
+
+<div class="card management">
+  <h4 class="teal">Earnings Call Tone — FY2025 (Feb 12, 2026) | CEO: Fernando Fernandez</h4>
+  <p>CEO Fernando Fernandez, who replaced Hein Schumacher in mid-2025, set an explicitly optimistic but sober tone: <em>"In 2025 we became a simpler, sharper, and faster Unilever."</em> He emphasized that the Ice Cream demerger (completed December 6, 2025) fundamentally repositions the company toward higher-growth categories. Key strategic pillars articulated: (1) Building a brand portfolio centred on Beauty, Wellbeing, and Personal Care; (2) Prioritising premium segments and digital commerce; (3) Anchoring growth in the US and India as core developed/EM anchors.</p>
+  <p style="margin-top:10px;">CFO commentary confirmed the productivity programme delivered €670M of cumulative savings by year-end, ahead of the €650M target. On the Q4 2025 earnings call, Fernandez stated: <em>"Our key metrics don't change — volume growth, positive mix, and gross margin expansion."</em> Management acknowledged slowing markets entering 2026, particularly in emerging markets (Brazil, India, Indonesia, China), but maintained guidance for 4%–6% underlying sales growth for FY2026, targeting the bottom end of that range.</p>
+  <p style="margin-top:10px;"><strong>Guidance FY2026:</strong> Underlying sales growth 4–6% (bottom end); at least 2% volume growth; modest underlying operating margin improvement above FY2025's 20.0%; further €130M productivity savings to be delivered in 2026; new €1.5B share buyback for H1 2026 announced.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Analyst Reaction &amp; Market Intelligence</h4>
+  <p><strong>Stock Move on Results Day (Feb 12, 2026):</strong> UL ADR closed at $73.46, up +2.06% on elevated volume of ~8.1M shares — more than double typical daily volume. The positive reception reflected relief that Q4 underlying sales growth accelerated to 4.2%, the strongest quarter of the year.</p>
+  <p style="margin-top:10px;"><strong>Consensus Target (USD ADR equivalent):</strong> ~$65.55 (MarketBeat, Apr 2026) — representing ~18% upside from current ~$55.55. Note the stock has retreated significantly since results day, suggesting macro/tariff headwinds have weighed.</p>
+  <ul style="margin-top:10px;">
+    <li><strong>Deutsche Bank:</strong> Reaffirmed Buy — raised target to 5,150 GBp (~$66) citing post-ice-cream margin improvement thesis.</li>
+    <li><strong>Barclays:</strong> Buy — frames 2026 as an "inflection point year" driven by premiumisation and EM recovery.</li>
+    <li><strong>UBS:</strong> Maintained Sell — target 4,440 GBp (~$57), citing subdued market growth, EPS dilution from separations, and concern that buybacks may mask organic weakness.</li>
+    <li><strong>CICC:</strong> Initiated Outperform (Aug 2025).</li>
+  </ul>
+  <p style="margin-top:10px;"><strong>Top Analyst Concerns:</strong> (1) Q4 2025 USG at 3.5% for the full year missed some expectations; (2) Indonesia and China restructuring ongoing; (3) Currency headwinds significant — 5.9% adverse FX impact in FY2025; (4) €5.9B FCF below FY2024's €6.9B, although largely explained by demerger one-offs; (5) Non-Power Brand (22% of turnover) declining materially — flagged as a strategic concern on the call.</p>
+</div>
+
+<!-- ⑤ RED FLAGS -->
+<h2>⑤ Red Flags</h2>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 1 — Margins Compressing</h4>
+  <p><strong>Status: WATCH — Partially Resolved, Structural Tension Remains</strong></p>
+  <p>GAAP operating margin collapsed from 18.4% in FY2021 to 16.2% in FY2022 as input cost inflation (particularly edible oils, petrochemicals, packaging) far outpaced pricing. Recovery followed: 17.7% in FY2023, but then a further GAAP dip to 15.5% in FY2024 due to accelerated restructuring charges (€850M) and disposal losses. FY2025 (continuing ops) recovered to 17.9% GAAP, with underlying operating margin reaching 20.0%. The GAAP vs. Non-GAAP gap of approximately 260bps in FY2025 is material and warrants scrutiny — restructuring is classified as non-underlying but has been a recurring annual cost since 2022. Gross margin trajectory is genuinely positive (45.0% in FY2024, highest in a decade per IR). However, accelerating brand and marketing investment (up 120bps to 15.5% of turnover in FY2024) partially offsets gross margin gains — a deliberate trade-off but one that constrains net margin expansion.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 2 — Volume Declining</h4>
+  <p><strong>Status: RESOLVED in 2024 — Now Watch for 2026 Deceleration</strong></p>
+  <p>Volume was a persistent problem for Unilever from FY2022 (−1.1%) through most of FY2023 (−0.2%). The pricing-led growth strategy of 2022–2023 — necessary to protect margins during inflation — came at a volume cost. FY2024 marked a genuine recovery: four consecutive quarters of underlying volume growth above 2.0%, with full-year volumes up +2.9%. FY2025 volume growth decelerated to +1.5%, which management attributed to slowing market conditions rather than competitive share loss. Key risk: Indonesia and China markets saw volume resets in 2025. Power Brands delivered +2.2% volume in FY2025 vs. non-Power Brands declining — a widening bifurcation. FY2026 guidance of "at least 2% volume growth" is achievable but requires improving EM momentum.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 3 — FCF Volatile</h4>
+  <p><strong>Status: CONFIRMED — 2022 Breach &gt;25%; 2025 Decline Flagged</strong></p>
+  <p>Company-reported FCF fell from approximately €6.4B in FY2021 to approximately €4.3B in FY2022 — a decline well exceeding the 25% trigger threshold. This breach was driven by a perfect storm: negative working capital swing, gross margin collapse, and rising capex. FCF recovered to €7.1B in FY2023 and €6.9B in FY2024, then fell again to €5.9B in FY2025 — a −14.5% decline, primarily from Ice Cream demerger-related costs (management explicitly cited "down €0.4bn primarily due to Ice Cream demerger costs"). Macrotrends data (USD-translated) shows a similar pattern. The 100% cash conversion in FY2025 is a positive quality indicator, but FCF is now structurally lower as the base revenue base (post-demerger) has shrunk. FY2026 FCF trajectory will be a critical watch item.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 4 — Capex &gt;70% of Operating Cash Flow</h4>
+  <p><strong>Status: NOT PRESENT — Capex is well-controlled</strong></p>
+  <p>Unilever's capital expenditure has been disciplined. In FY2024, operating cash flow was approximately €10.0B and capex approximately €1.7B — a capex/OpCF ratio of approximately 17%. TTM data from stockanalysis.com shows operating cash flow of $9.8B and capex of −$1.66B, a ratio of approximately 17%. This is far below the 70% red-flag threshold and consistent with Unilever's asset-light model (manufacturing outsourced in part, brand-heavy business). Capital expenditure guidance going forward includes targeted investments in premium supply chain capabilities, but no indication of a step-change in capex intensity. This is a sector-standard, healthy level.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 5 — Debt Growing in Downturn</h4>
+  <p><strong>Status: WATCH — Net Debt Elevated but Improving Post-Demerger</strong></p>
+  <p>Net debt peaked at approximately €24.5B in FY2024 and declined to approximately €23.1B in FY2025, with a net debt-to-EBITDA ratio of approximately 2.0x — manageable for an investment-grade FMCG company. However, Net Debt/Equity remains elevated at approximately 161% (TTM, stockanalysis.com: D/E 1.61x). During the 2022 inflationary downturn, net debt increased even as earnings declined — a classic red flag pattern. Unilever has been actively refinancing at higher rates; management noted net finance costs of approximately 3% on average net debt expected for FY2025. A further €1.5B bond issuance in H2 2025 adds to gross debt. The demerger improved the ratio but did not fundamentally resolve the structural leverage. For an FMCG company with stable cash flows, this level of leverage is acceptable — but leaves limited buffer for another inflationary shock.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 6 — Management Using "Uncertainty / Headwinds" Language</h4>
+  <p><strong>Status: CONFIRMED — Pervasive in FY2025 and FY2026 Guidance</strong></p>
+  <p>Management language in the FY2025 results and subsequent analyst calls is replete with hedging: "despite slowing markets," "currency headwinds," "macroeconomic pressures in Latin America," "challenges in Indonesia and China," "slower market conditions." The FY2026 guidance was explicitly set "at the bottom end" of the 4%–6% USG range — a downward signal within already-cautious guidance. The earnings call transcript shows analysts from Barclays, UBS, and HSBC probing on emerging market outlook, US volume, and Brazil distribution. CEO Fernandez also stated the company is navigating a "US-Iran war" related hiring pause (CNBC, March 31, 2026) — an exogenous macro factor. While some uncertainty language is warranted given genuine macro conditions, the cumulative weight of hedging terms across guidance and earnings discourse is a watch item under Lynch's framework for management honesty vs. excuse-making.</p>
+</div>
+
+<!-- ⑥ INVERT -->
+<h2>⑥ Invert — Charlie Munger Style</h2>
+
+<div class="card invert">
+  <h4 class="gold">Why Unilever Could Be a Bad Long-Term Investment</h4>
+  <p>Unilever is structurally exposed to the very markets it most relies on. Emerging markets represent approximately 58% of sales — but these markets are also the most volatile, the most currency-challenged, and increasingly competitive with local champions (especially in India, Indonesia, and China). The company has spent four years restructuring, demerging, and reorganising, yet GAAP operating margins in FY2025 (17.9%) remain below FY2021 (18.4%) despite all the savings programs. If the productivity programme merely offsets structural cost inflation without delivering genuine margin expansion above the pre-crisis baseline, the entire 2022–2026 transformation delivers no net shareholder value. Meanwhile, the dividend has been effectively frozen for three years (FY2021–FY2023), and earnings per share grew a cumulative ~8% over five years — a CAGR of just ~1.6%. At 15x forward earnings, the stock may look cheap relative to peers, but not relative to its actual growth rate. The PEG of 11x is egregious by Lynch standards.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">What Invalidates the Investment Despite Good-Looking Financials</h4>
+  <p>The apparent improvement in underlying operating margin (18.4% in FY2024, 20.0% in FY2025 on a continuing basis) is partly a composition effect — the Ice Cream demerger removed a lower-margin, capital-intensive, weather-sensitive business from the portfolio. Reported improvement in ROIC (from ~14.8% in FY2022 to 18.1% in FY2024) similarly benefits from the removal of low-ROIC assets. If the remaining business (Beauty, Personal Care, Home Care, Foods) was already the higher-quality core, the "improvement" was always latent and does not represent new value creation by management. Additionally, the GAAP vs. Non-GAAP gap is a recurring structural feature — Unilever has booked restructuring charges in every year from FY2020 through FY2025. This means "underlying" earnings consistently overstate economic earnings by 200–300bps of margin.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Assumptions That Must Go Right for the Bull Case</h4>
+  <p>The consensus Buy case (~$65 target) requires: (1) Emerging market volumes recover to 3%+ growth in 2026–2027, particularly India and Indonesia; (2) Premium segment (Beauty &amp; Wellbeing) sustains double-digit growth globally; (3) Productivity savings flow through to GAAP margins — not just underlying; (4) Currency headwinds (5.9% adverse impact in FY2025) moderate or reverse; (5) The McCormick-Unilever food business transaction (Unilever sold food brands to McCormick for ~$16B, announced March 2026) is executed cleanly without integration risk or disruption; (6) No further major commodity inflation cycle in 2026–2027 (particularly palm oil, edible oils). If any two of these factors disappoint simultaneously, the investment thesis unravels rapidly given the current leverage level and limited FCF buffer.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Structural Weaknesses That Persist Regardless of Management Quality</h4>
+  <p>First, Unilever operates in mature, low-growth categories globally — personal wash, laundry, condiments. Volume growth above 3% sustainably requires either market share gains or category expansion, both of which are structurally difficult in a world of private-label competition and GLP-1 drug adoption affecting food volumes. Second, the company's geographic footprint — 58% EM — means it will always be subject to outsized currency translation risk. Third, unlike P&amp;G (ROIC 22%, D/E 69%) or L'Oréal (ROIC 14%, D/E 28%), Unilever's balance sheet carries significant structural leverage that limits strategic optionality during downturns. Fourth, the Ben &amp; Jerry's political governance overhang — while a minor financial item — has demonstrated that Unilever's complex stakeholder management model can produce headline reputational risk disproportionate to the financial impact, and the relationship between the brand and parent company remains legally and reputationally complex.</p>
+</div>
+
+<!-- ⑦ GOLDEN TIPS -->
+<h2>⑦ Golden Tips — Analyst Watching Points</h2>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 1 — GAAP vs. Non-GAAP: Watch the Restructuring Addiction</h4>
+  <p>Unilever's "underlying operating margin" (UOM) is their flagship metric — and it consistently runs 200–300bps above the GAAP operating margin. In FY2025, UOM was 20.0% vs. GAAP operating margin of approximately 17.9% — a gap of approximately 210bps. Management justifies this gap via restructuring charges, disposal losses, and one-off items. The problem: Unilever has booked "non-underlying" items in every single year since at least FY2020. What started as a crisis-management tool (2022 restructuring) has become a structural reporting feature. For any Lynch-style investor, you must anchor valuation to GAAP earnings and GAAP FCF. The productivity programme claims €800M of savings (€670M delivered by end-2025) — but annual restructuring costs of approximately €850M in FY2024 effectively consumed all of those savings in the same year. Watch whether FY2026 marks a genuine decline in non-underlying charges.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 2 — FCF vs. Net Income: The 2022 Canary</h4>
+  <p>In FY2022, Unilever's net income was approximately $7.6B but company-reported FCF fell to approximately €4.3B — a dramatic gap. The divergence was driven by working capital deterioration (inventory build as costs surged, payables tightened) and capex increases. This is one of the clearest signals available to an analyst that reported profits are not translating to cash. Always cross-check Unilever's net income against FCF, and compare both against operating cash flow. In FY2024 and FY2025, cash conversion returned to approximately 100–106%, restoring quality. But vigilance is required: if commodity costs spike in 2026–2027 (as management has cautioned), the FY2022 playbook could repeat. FCF yield (currently ~4.9%) is the most honest valuation anchor for this company — not the P/E multiple based on non-GAAP EPS.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 3 — Revenue Up, Margins Down: The 2022–2024 Warning Pattern</h4>
+  <p>From FY2021 to FY2022, Unilever's revenue grew +14.7% — the best revenue growth in over a decade. Simultaneously, gross margin collapsed nearly 250bps and GAAP operating margin fell approximately 220bps. This is a textbook example of revenue growth being driven by price (not volume), with costs rising faster than prices. Lynch's framework specifically warns against mistaking price-driven revenue growth for genuine business strength. When a company's revenue jumps +14% but earnings per share barely move — as happened in FY2022 — the growth is illusory. Investors who anchored to the revenue headline got burned. Always dissect: how much of revenue growth is volume vs. price? Unilever now reports these transparently (UVG and UPG) — use them. In FY2025, USG of 3.5% was composed of 1.5% volume and 2.0% price — a healthier mix than 2022's 11%+ price / −1%+ volume split.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 4 — Capex Pattern: Maintenance vs. Growth Investment</h4>
+  <p>Unilever's capex-to-revenue ratio has been low and stable — approximately 2.5–2.8% of revenue historically, consistent with a brand-heavy business where competitive advantage is built through marketing, formulation science, and distribution rather than physical plant. This low capital intensity is a genuine quality characteristic and helps explain the relatively high FCF conversion (operating cash flow less capex = FCF). However, two watch items: (1) Unilever is now investing in premium supply chain capabilities (>10 agile production lines for innovations; €150M European supply chain investment), which could modestly increase capex intensity in 2026–2027. (2) Post-demerger, capex requirements for the Ice Cream cold-chain are removed — making the remaining business structurally more capital-light. Watch for any capex guidance changes in Q1 2026 trading statement (expected April 30, 2026). If capex/OpCF climbs above 30%, it would be a genuine shift in the investment profile.</p>
+</div>
+
+<footer>
+  <strong>SOURCES &amp; CITATIONS</strong><br>
+  [1] Unilever FY2025 Full Year Results Press Release — Feb 12, 2026 | unilever.com/investors<br>
+  [2] Unilever FY2024 Full Year Results Press Release — Feb 13, 2025 | unilever.com/investors<br>
+  [3] Unilever Annual Report &amp; Accounts 2025 | unilever.com/investors/annual-report-and-accounts<br>
+  [4] Unilever Annual Report &amp; Accounts 2024 | unilever.com/investors/annual-report-and-accounts<br>
+  [5] Unilever FY2021 Full Year Results Press Release — Feb 10, 2022 | unilever.com<br>
+  [6] Unilever H1 2025 Results Full Announcement — Jul 2025 | unilever.com/files/ir-q2-2025-full-announcement.pdf<br>
+  [7] Unilever Q4 2024 Full Announcement | unilever.com/files/ir-q4-2024-full-announcement.pdf<br>
+  [8] Unilever Directors' Remuneration Report 2024 | unilever.com<br>
+  [9] stockanalysis.com/stocks/ul/statistics — UL Statistics &amp; Valuation (ROIC 16.69%, D/E 1.61x, FCF $8.0B TTM)<br>
+  [10] stockanalysis.com/stocks/pg/statistics — PG Statistics (ROIC 22.17%)<br>
+  [11] stockanalysis.com/quote/epa/OR/statistics — L'Oréal Statistics (ROIC 13.98%, Op Margin 20.1%)<br>
+  [12] stockanalysis.com/quote/swx/NESN/statistics — Nestlé Statistics (Fwd PE 17.96, PEG 3.74)<br>
+  [13] gurufocus.com/term/roic/NSRGY — Nestlé ROIC 9.04% (Dec 2025)<br>
+  [14] gurufocus.com/term/ROIC/LRLCY — L'Oréal ROIC 13.31% (Dec 2025)<br>
+  [15] L'Oréal 2025 Annual Results | loreal-finance.com/eng/press-release/2025-annual-results (Feb 12, 2026)<br>
+  [16] L'Oréal 2024 Annual Results | loreal-finance.com (Feb 6, 2025)<br>
+  [17] Yahoo Finance Key Statistics: UL, KO, PEP, NSRGY | finance.yahoo.com<br>
+  [18] 247wallst.com — "Coke vs Pepsi: Which Dividend Is Actually Safer?" Mar 10, 2026<br>
+  [19] Motley Fool — "Best Stock to Buy Right Now: Coca-Cola vs. PepsiCo" Aug 16, 2025<br>
+  [20] koalagains.com — Unilever vs P&amp;G vs Nestlé comparative analysis<br>
+  [21] bayelsawatch.com — "Unilever Q4 and Full Year 2025 Earnings" Feb 25, 2026<br>
+  [22] investing.com — "Earnings Call Transcript: Unilever's Q4 2025 Results Fall Short of Forecasts"<br>
+  [23] ts2.tech — "Unilever PLC Stock (ULVR): Price, Forecasts and Latest Analyst Calls" Dec 15, 2025<br>
+  [24] MarketBeat — UL Analyst Price Targets ($65.55 consensus) Apr 2026 | marketbeat.com/stocks/NYSE/UL/forecast<br>
+  [25] CNBC — UL quotes, analyst ratings (Deutsche Bank Hold, Barclays Buy, UBS Sell) Apr 2026<br>
+  [26] Macrotrends — UL Revenue, Operating Income, FCF, Operating Cash Flow historical | macrotrends.net<br>
+  [27] Jamessharp.co.uk — Unilever FY2024 and FY2025 Final Results summaries<br>
+  [28] Unilever financial charts 2014–2023 | unilever.com/files/unilever-charts-2014-2023.pdf<br>
+  [29] Yahoo Finance Cash Flow Statement UL | finance.yahoo.com/quote/UL/cash-flow<br>
+  [30] Kraken.com — UL stock price, market cap, dividend yield data<br>
+  <br>
+  <strong>DISCLAIMER</strong> This report is produced for informational and educational purposes only and does not constitute investment advice, a solicitation, or a recommendation to buy or sell any security. All data is sourced from publicly available information and believed accurate at the time of compilation (April 8, 2026) but may contain errors or omissions. Forward-looking statements and DCF outputs are illustrative estimates based on stated assumptions — not forecasts. Past financial performance is not indicative of future results. The analyst has no position in UL or any named security. Always conduct independent due diligence and consult a qualified financial adviser before making investment decisions.
+</footer>
+
+</body>
+</html>
+This is a fully self-contained, research-backed report. Here is a summary of the key findings embedded in the report:
+
+**Unilever — Key Analyst Takeaways:**
+
+The FY2024 full-year results showed underlying operating margin up 170bps to 18.4%, with free cash flow of €6.9 billion and cash conversion of 106%.
+
+In FY2025 (continuing operations, ex-Ice Cream), Unilever generated turnover of €50.5 billion, operating profit of €9.0 billion, net profit of €6.2 billion, and free cash flow of €5.9 billion.
+
+The underlying operating margin expanded to 20.0% in FY2025, up 60bps, driven by disciplined overhead management, while the productivity programme delivered cumulative savings of approximately €670 million by end-2025.
+
+On valuation, stockanalysis.com shows ROIC of 16.69% and ROE of 30.96%, while the TTM EV/FCF stands at 21.39x.
+
+On the analyst divide: UBS kept a Sell rating and reduced its target to 4,440 GBp, citing subdued market growth and earnings dilution effects, while Deutsche Bank and Barclays maintain bullish stances framing 2026 as an "inflection point year."

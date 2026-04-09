@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP SE — Peter Lynch Financial &amp; SBC Impact Screener</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:200px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}.trend-down{color:var(--red);font-weight:600}
+  .anomaly{color:var(--accent);font-weight:700}.na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}.cell-good{background:#e8f5e9}.cell-warn{background:#fff8e1}.cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}.dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}.dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}.card.invert{border-left-color:var(--gold)}.card.golden{border-left-color:var(--green)}.card.management{border-left-color:var(--teal)}.card.ai-risk{border-left-color:#6b3fa0}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}.card h4.gold{color:var(--gold)}.card h4.teal{color:var(--teal)}.card h4.green{color:var(--green)}.card h4.purple{color:#6b3fa0}
+  .card p,.card li{font-size:13px;line-height:1.7}.card ul{padding-left:18px}.card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}.badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}.badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}.badge-purple{background:#f3e5f5;color:#6b3fa0;border:1px solid #ce93d8}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px;line-height:1.7}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}.cat-fast{background:#f3e5f5;color:#6a1b9a}.cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px;flex-wrap:wrap}
+  .stat-box{flex:1;min-width:130px;padding:16px 18px;border-right:1px solid var(--border);text-align:center}.stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  .risk-rank-high{background:#ffebee;color:#a0281c;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px}
+  .risk-rank-med{background:#fff8e1;color:#7a5800;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px}
+  .risk-rank-low{background:#e8f5e9;color:#1a5c1a;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 8px;border-radius:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>SAP SE</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: SAP (NYSE ADR) / SAP (XETRA)</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>April 9, 2026</span></div>
+    <div class="meta-item">Price (SAP ADR): <span>~$158</span></div>
+    <div class="meta-item">Market Cap: <span>~$185B (€170B)</span></div>
+    <div class="meta-item">Category: <span><span class="category-badge cat-fast">Fast Grower → Stalwart Transition</span></span></div>
+    <div class="meta-item">HQ: <span>Walldorf, Germany</span></div>
+    <div class="meta-item">Sector: <span>Enterprise Application Software</span></div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">FY2025 Revenue</div>
+    <div class="stat-val">€36.8B</div>
+    <div class="stat-sub">+7.6% reported / +11% cc</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FCF (FY2025)</div>
+    <div class="stat-val">€8.24B</div>
+    <div class="stat-sub">+95% YoY; guided €10B FY2026</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">IFRS Op. Margin</div>
+    <div class="stat-val">26.7%</div>
+    <div class="stat-sub">FY2025 (+13.1pp YoY)</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">ROIC (TTM)</div>
+    <div class="stat-val">17.4%</div>
+    <div class="stat-sub">Source: stockanalysis.com</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Fwd P/E (SAP ADR)</div>
+    <div class="stat-val">~20x</div>
+    <div class="stat-sub">PEG: 1.19x | Source: stockanalysis</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Cloud Backlog</div>
+    <div class="stat-val">€77.3B</div>
+    <div class="stat-sub">+30% at constant currencies</div>
+  </div>
+</div>
+
+<!-- ① 5-YEAR FINANCIAL TREND TABLE -->
+<h2>① 5-Year Financial Trend</h2>
+
+<div class="card management" style="margin-bottom:16px;">
+  <h4 class="teal">Data Notes — FY Comparability &amp; Key Methodology Changes</h4>
+  <p><strong>Critical note on non-IFRS definition change (FY2024):</strong> Starting in FY2024, SAP revised its non-IFRS operating profit definition to <em>include</em> share-based compensation (SBC) expenses. In prior years (FY2021–FY2023), non-IFRS excluded SBC, making the GAAP vs. non-IFRS gap appear very large (~10–14 pp). Post-2024, the gap narrows structurally (~1.5–2 pp, primarily amortization of acquired intangibles) — this is a methodology change, not fundamental improvement. <strong>Qualtrics context:</strong> SAP's FY2021–FY2022 SBC was massively distorted by Qualtrics IPO equity awards (FY2021 SBC = €2.79B = 10.0% of revenue, including €1.65B equity-settled). Post-Qualtrics spin-off (Jan 2023), SBC normalised sharply. <strong>FY2024 IFRS anomaly:</strong> Massive €3.1B restructuring charge from the 2024 Transformation Program depressed IFRS operating margin to 13.7%; non-IFRS margin (including SBC under new definition) was 24.1%. FY2025 IFRS margin recovery to 26.7% reflects restructuring charge reversal — a structural improvement supported by underlying business momentum. All data sourced from SAP IR press releases, SEC 6-K / 20-F filings, stockanalysis.com, and gurufocus.com.</p>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>FY2021</th>
+      <th>FY2022</th>
+      <th>FY2023</th>
+      <th>FY2024</th>
+      <th>FY2025</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Total Revenue (€bn, IFRS)</td>
+      <td>€27.8</td>
+      <td class="trend-up">€30.9</td>
+      <td>€31.2</td>
+      <td class="trend-up">€34.2</td>
+      <td class="trend-up">€36.8</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth %</td>
+      <td>+1.8%</td>
+      <td class="trend-up">+10.9%</td>
+      <td class="trend-down">+1.1% ⚠</td>
+      <td class="trend-up">+9.5%</td>
+      <td>+7.6% (+11% cc)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Cloud Revenue (€bn)</td>
+      <td>~€8.7</td>
+      <td>~€11.4</td>
+      <td>€13.7</td>
+      <td>€17.1</td>
+      <td class="trend-up">€21.0</td>
+    </tr>
+    <tr>
+      <td class="row-label">Cloud % of Total Revenue</td>
+      <td>~31%</td>
+      <td>~37%</td>
+      <td>44%</td>
+      <td>50%</td>
+      <td class="trend-up">57%</td>
+    </tr>
+    <tr>
+      <td class="row-label">IFRS Gross Margin %</td>
+      <td>71.7%</td>
+      <td>72.4%</td>
+      <td>73.0%</td>
+      <td>73.3%</td>
+      <td class="trend-up">73.8%</td>
+    </tr>
+    <tr>
+      <td class="row-label">IFRS Operating Margin %</td>
+      <td>16.7%</td>
+      <td class="trend-down">15.1% ⚠</td>
+      <td class="trend-down">14.2% ⚠</td>
+      <td class="anomaly">13.7% ⚠⚠</td>
+      <td class="trend-up">26.7% ↑↑</td>
+    </tr>
+    <tr>
+      <td class="row-label">Non-IFRS Operating Margin %*</td>
+      <td>29.6%</td>
+      <td class="trend-down">26.0% ⚠</td>
+      <td>28.0%</td>
+      <td class="trend-down">24.1% ⚠</td>
+      <td class="trend-up">28.3%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP vs. Non-IFRS Gap (pp)*</td>
+      <td class="anomaly">~12.9pp ⚠</td>
+      <td class="anomaly">~10.9pp ⚠</td>
+      <td class="anomaly">~13.8pp ⚠</td>
+      <td class="anomaly">~10.4pp ⚠</td>
+      <td class="cell-good">~1.6pp ✓</td>
+    </tr>
+    <tr>
+      <td class="row-label">NOPAT (GAAP est., €bn)</td>
+      <td>~€3.3</td>
+      <td>~€3.2</td>
+      <td>~€3.0</td>
+      <td>~€3.4</td>
+      <td class="trend-up">~€7.2</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF (IFRS, €bn)</td>
+      <td>~€5.0</td>
+      <td class="trend-down">~€4.3 ⚠</td>
+      <td>~€4.9</td>
+      <td class="trend-down anomaly">~€4.2 ⚠</td>
+      <td class="trend-up">€8.24 ↑↑</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF as % of Revenue</td>
+      <td>18%</td>
+      <td class="trend-down">14% ⚠</td>
+      <td>16%</td>
+      <td class="trend-down">12% ⚠</td>
+      <td class="trend-up">22%</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td>~12%</td>
+      <td>~11%</td>
+      <td>~10%</td>
+      <td>~12%</td>
+      <td class="trend-up">17.4%</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC as % of Revenue (est.)**</td>
+      <td class="anomaly">~10.0% ⚠⚠</td>
+      <td class="anomaly">~5–6% ⚠</td>
+      <td class="trend-down">~2.5–3%</td>
+      <td>~1.8–2%</td>
+      <td class="cell-good">~1.2–1.5%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Cash / (Debt) (€bn)</td>
+      <td>~(€1.0)</td>
+      <td>~(€2.0)</td>
+      <td>~(€0.5)</td>
+      <td>~(€0.5)</td>
+      <td class="trend-up">+€2.1 (net cash)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Yield (approx.)</td>
+      <td>~0.7%</td>
+      <td>~0.8%</td>
+      <td>~0.9%</td>
+      <td>~1.0%</td>
+      <td>~1.2%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E (current only)</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td><strong>~20.0x</strong></td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio (current only)</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="cell-good"><strong>1.19x ✓</strong></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  * Non-IFRS definition changed in FY2024: pre-FY2024 non-IFRS <em>excluded</em> SBC; FY2024+ non-IFRS <em>includes</em> SBC. The GAAP vs. non-IFRS gap in FY2025 (~1.6 pp) is therefore not directly comparable to prior years. The gap in FY2021–FY2023 was dominated by SBC (especially Qualtrics-related equity awards).<br>
+  ** SBC: FY2021 SBC = €2,794M confirmed per SAP 2021 Annual Report (20-F filing); equity-settled component = €1,647M, massively inflated by Qualtrics IPO. FY2022–FY2025 estimates derived from GAAP vs. non-IFRS reconciliations and disclosed cash payments for SBC in operating cash flow statements. The FY2025 improvement reflects both lower SBC expense and the methodology change.<br>
+  ⚠ ANOMALY — FY2023 Revenue Growth: Only +1.1% reported despite solid cloud growth (+20%), caused by ~14% currency headwind and sharp software license decline (−21%). Underlying cloud and software momentum was intact.<br>
+  ⚠⚠ ANOMALY — FY2024 IFRS Operating Margin: 13.7% is severely depressed by a €3.1B restructuring charge from SAP's 2024 Transformation Program. Non-IFRS margin (24.1% incl. SBC) is a better proxy for underlying profitability.<br>
+  ⚠ ANOMALY — FY2022 &amp; FY2024 FCF: Both years saw material FCF declines — FY2022 from cloud transition investment headwinds and Russia/Ukraine impact; FY2024 from €2.2B+ in cash restructuring payments. Neither reflects a deterioration in the underlying FCF engine.<br>
+  Source: SAP SE Q4 &amp; FY2025 Results (Jan 29, 2026) | SAP Q4 FY2024 Results (Jan 28, 2025) | SAP 20-F (2021, 2024) | stockanalysis.com/stocks/sap | gurufocus.com (ROIC 17.40%)
+</div>
+
+<!-- ② LYNCH SCREENER COMPETITOR BENCHMARK -->
+<h2>② Lynch Screener — Competitor Benchmark</h2>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>SAP SE<br><small>(SAP)</small></th>
+      <th>Adobe<br><small>(ADBE)</small></th>
+      <th>Salesforce<br><small>(CRM)</small></th>
+      <th>Intuit<br><small>(INTU)</small></th>
+      <th>ServiceNow<br><small>(NOW)</small></th>
+      <th>Veeva<br><small>(VEEV)</small></th>
+      <th>ADP<br><small>(ADP)</small></th>
+      <th>Wolters Kluwer<br><small>(WKL)</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Category (Lynch)</td>
+      <td class="cell-good">✅ Fast Grower (Cloud transition)</td>
+      <td class="cell-warn">⚠️ Stalwart / Stalled</td>
+      <td class="cell-warn">⚠️ Fast Grower / Maturing</td>
+      <td class="cell-good">✅ Fast Grower</td>
+      <td class="cell-good">✅ Fast Grower</td>
+      <td class="cell-good">✅ Fast Grower (niche)</td>
+      <td class="cell-good">✅ Stalwart</td>
+      <td class="cell-good">✅ Stalwart / Compounder</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth (LTM / FY)</td>
+      <td class="cell-good">✅ +11% cc (FY2025)</td>
+      <td class="cell-warn">⚠️ ~+9.5% (FY2025)</td>
+      <td class="cell-warn">⚠️ ~+9% (FY2025)</td>
+      <td class="cell-good">✅ +16% (FY2025)</td>
+      <td class="cell-good">✅ ~+20% (FY2025)</td>
+      <td class="cell-good">✅ ~+17% (FY2026)</td>
+      <td class="cell-warn">⚠️ ~+6% (FY2025)</td>
+      <td class="cell-good">✅ ~+6% organic (FY2025)</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Margin %</td>
+      <td class="cell-good">✅ 26.7% (FY2025)</td>
+      <td class="cell-trophy">🏆 ~36% (FY2025)</td>
+      <td class="cell-good">✅ ~21% (FY2025)</td>
+      <td class="cell-good">✅ ~26% (FY2025)</td>
+      <td class="cell-warn">⚠️ ~13% (FY2025)</td>
+      <td class="cell-good">✅ ~27% (TTM)</td>
+      <td class="cell-good">✅ ~25% (FY2025)</td>
+      <td class="cell-trophy">🏆 ~33% adj. (FY2025)</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP vs. Non-GAAP Gap (pp)</td>
+      <td class="cell-good">✅ ~1.6pp (new def.)</td>
+      <td class="cell-bad">❌ ~15–17pp (heavy SBC)</td>
+      <td class="cell-warn">⚠️ ~10pp (SBC ~8% rev.)</td>
+      <td class="cell-bad">❌ ~14pp (SBC high)</td>
+      <td class="cell-bad">❌ ~15pp (very high SBC)</td>
+      <td class="cell-bad">❌ ~17pp (SBC ~15% rev.)</td>
+      <td class="cell-good">✅ ~3pp (low SBC)</td>
+      <td class="cell-good">✅ ~5pp (modest SBC)</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="cell-good">✅ 17.4%</td>
+      <td class="cell-trophy">🏆 ~40%+ (asset-light)</td>
+      <td class="cell-bad">❌ ~7–8% (Goodwill-heavy)</td>
+      <td class="cell-good">✅ ~18–20%</td>
+      <td class="cell-good">✅ 17.8%</td>
+      <td class="cell-good">✅ ~20%+</td>
+      <td class="cell-trophy">🏆 ~30%+ (float leverage)</td>
+      <td class="cell-trophy">🏆 ~25%+</td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E</td>
+      <td class="cell-good">✅ ~20x</td>
+      <td class="cell-trophy">🏆 ~12–13x</td>
+      <td class="cell-good">✅ ~20–21x</td>
+      <td class="cell-warn">⚠️ ~25–28x</td>
+      <td class="cell-bad">❌ ~40–50x (AI premium)</td>
+      <td class="cell-warn">⚠️ ~28x (adj.)</td>
+      <td class="cell-warn">⚠️ ~22–24x</td>
+      <td class="cell-good">✅ ~22x</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio</td>
+      <td class="cell-good">✅ 1.19x ✓</td>
+      <td class="cell-bad">❌ ~3–4x (growth slowing)</td>
+      <td class="cell-warn">⚠️ ~2.5x</td>
+      <td class="cell-warn">⚠️ ~2–3x</td>
+      <td class="cell-bad">❌ ~2–3x (priced to perfection)</td>
+      <td class="cell-warn">⚠️ ~2–3x</td>
+      <td class="cell-warn">⚠️ ~3–4x</td>
+      <td class="cell-warn">⚠️ ~3–4x</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity</td>
+      <td class="cell-good">✅ Net Cash (D/E 0.17x)</td>
+      <td class="cell-good">✅ Net Cash positive</td>
+      <td class="cell-good">✅ Low (D/E ~0.20x)</td>
+      <td class="cell-warn">⚠️ Moderate leverage</td>
+      <td class="cell-good">✅ Net Cash positive</td>
+      <td class="cell-trophy">🏆 Net Cash $6.46B</td>
+      <td class="cell-warn">⚠️ Moderate (client float)</td>
+      <td class="cell-warn">⚠️ Moderate</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td class="cell-good">✅ ~4.9% (FY2025)</td>
+      <td class="cell-good">✅ ~5–6%</td>
+      <td class="cell-warn">⚠️ ~4–5%</td>
+      <td class="cell-warn">⚠️ ~2–3%</td>
+      <td class="cell-bad">❌ ~1.5–2% (expensive)</td>
+      <td class="cell-trophy">🏆 ~5–6% (FCF margin 44%)</td>
+      <td class="cell-good">✅ ~3.5–4%</td>
+      <td class="cell-good">✅ ~3.5–4%</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC % of Revenue</td>
+      <td class="cell-good">✅ ~1.2–1.5% (FY2025)</td>
+      <td class="cell-bad">❌ ~15–17% (very high)</td>
+      <td class="cell-warn">⚠️ ~8% (declining)</td>
+      <td class="cell-bad">❌ ~10–12%</td>
+      <td class="cell-bad">❌ ~15–18% (very high)</td>
+      <td class="cell-bad">❌ ~15% (high for niche SaaS)</td>
+      <td class="cell-trophy">🏆 ~1–2% (very low)</td>
+      <td class="cell-trophy">🏆 ~2–3% (low)</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Quality</td>
+      <td class="cell-good">✅ Structurally recovering; FY2025 record €8.24B; FY2026 guided €10B</td>
+      <td class="cell-good">✅ Strong, but SBC-inflated OCF</td>
+      <td class="cell-good">✅ Strong FCF; Informatica integration risk</td>
+      <td class="cell-good">✅ Strong seasonal model</td>
+      <td class="cell-good">✅ High-growth; capex light</td>
+      <td class="cell-trophy">🏆 Exceptional — 44% FCF margin</td>
+      <td class="cell-good">✅ Very stable; client funds model</td>
+      <td class="cell-good">✅ Consistent adj. FCF</td>
+    </tr>
+    <tr>
+      <td class="row-label">Buyback Efficiency</td>
+      <td class="cell-good">✅ New €10B buyback program (Feb 2026, 2-yr)</td>
+      <td class="cell-good">✅ Active buyback; ~$2.5B in FY2025</td>
+      <td class="cell-good">✅ $2B+ repurchase ongoing</td>
+      <td class="cell-warn">⚠️ Modest vs market cap</td>
+      <td class="cell-warn">⚠️ Minimal; reinvests in growth</td>
+      <td class="cell-good">✅ New $2B buyback (Jan 2025)</td>
+      <td class="cell-trophy">🏆 Consistent multi-year buyback</td>
+      <td class="cell-good">✅ €1B buyback FY2025</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="note">
+  Sources: SAP SE FY2025 IR Press Release (Jan 29, 2026) | SAP Q4 2025 Quarterly Statement | stockanalysis.com/stocks/sap (ROIC 17.40%, Fwd PE 20.18, PEG 1.19) | stockanalysis.com/stocks/now (ROIC 17.80%) | stockanalysis.com/stocks/crm (ROIC 6.80%, GAAP Op Margin 21.47%) | stockanalysis.com/stocks/veev (Net Cash $6.46B, FCF margin ~44%) | Adobe 8-K FY2025 Results (Dec 2025; GAAP op margin 36%) | Intuit FY2025 8-K (Revenue $18.83B, GAAP op margin ~26%) | Wolters Kluwer FY2025 Guidance (organic growth 6%, adj. op margin top-end of range) | gurufocus.com forward PEs (April 2026) | ADP Q2 FY2026 8-K (Feb 2026) | Veeva Systems FY2026 SEC filings<br>
+  Note: All SBC % figures are estimates and may include non-cash equity-settled and cash-settled awards. ServiceNow and Veeva SBC is structurally high; in contrast, SAP's SBC has been normalized significantly post-Qualtrics. PEG ratios based on consensus EPS growth estimates as available on public sources. Wolters Kluwer adj. operating profit margin is the non-IFRS equivalent.
+</div>
+
+<!-- ③ DCF TABLE 2 MODE B -->
+<h2>③ DCF Analyst — Table 2 Mode B</h2>
+
+<div class="card management">
+  <h4 class="teal">FCF Volatility Assessment</h4>
+  <p><strong>MODERATE FCF VOLATILITY — NO SINGLE-YEAR BREACH ABOVE 25% UNDER IFRS.</strong> SAP's FCF trajectory has been punctuated by two significant troughs: FY2022 (~€4.3B, down ~14% from FY2021) due to cloud transition costs and Russia/Ukraine exit charges, and FY2024 (~€4.2B, down ~14% from FY2023) due to cash restructuring payments from the 2024 Transformation Program. Neither decline exceeded the 25% single-year breach threshold. The FY2025 recovery to €8.24B (+95%) is the strongest FCF in the company's history and is driven by three converging factors: (1) restructuring cash payments completed, (2) dramatic NOPAT improvement as IFRS operating profit surged 111%, and (3) improved working capital management. SAP's FY2026 FCF guidance of approximately €10B reflects high management confidence in structural cash conversion improvement. <span class="badge badge-yellow">Moderate Volatility — Below Breach Threshold</span></p>
+</div>
+
+<div class="dcf-inputs">
+  <strong>DCF Model Inputs — SAP SE (SAP) | Sector: Enterprise Application Software</strong><br>
+  Base FCF (FY2025 IFRS): <strong>€8.24B</strong> (~$8.98B at €/$1.09)<br>
+  FCF as % NOPAT: <strong>~114%</strong> (FY2025; elevated by restructuring charge reversal — normalised ~90%)<br>
+  Terminal Growth Rate (g): <strong>3.0%</strong><br>
+  Sector Growth Cap: <strong>Enterprise SaaS / Cloud ERP — no hard cap; capped at 30% Y1–3 Bull</strong><br>
+  Current Share Price (ADR, USD): <strong>~$158</strong> | Current SAP.DE Price: <strong>~€145</strong><br>
+  Shares Outstanding: <strong>~1.17 billion</strong><br>
+  Net Cash: <strong>+€2.1B</strong> (~$2.3B)<br>
+  Discount Rates tested: <strong>8%, 9%, 10%</strong><br>
+  Currency note: FCF in EUR; USD conversion at 1.09. DCF output in USD per ADR share.<br>
+  Scenarios: Bear (Y1–3: 8% / Y4–10: 5%) | Base-Low (Y1–3: 15% / Y4–10: 8%) | Base (Y1–3: 20% / Y4–10: 10%) | Bull (Y1–3: 25% / Y4–10: 14%)<br>
+  <strong>Context:</strong> SAP guided €10B FCF for FY2026 (+21% YoY). Bear scenario growth (8% Y1) is already <em>below</em> the FY2026 guidance implied growth rate, making Bear an extreme stress test. Base scenario aligns roughly with management's 3-year trajectory. Bull reflects full AI monetisation.
+</div>
+
+<div class="table-wrap">
+<table class="dcf-table">
+  <thead>
+    <tr>
+      <th class="row-head">Discount Rate (WACC)</th>
+      <th>Bear<br><small>Y1–3: 8% / Y4–10: 5%</small></th>
+      <th>Base-Low<br><small>Y1–3: 15% / Y4–10: 8%</small></th>
+      <th>Base<br><small>Y1–3: 20% / Y4–10: 10%</small></th>
+      <th>Bull<br><small>Y1–3: 25% / Y4–10: 14%</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">r = 8%</td>
+      <td class="dcf-green">$213 🟢<br><small>+35% vs $158</small></td>
+      <td class="dcf-green">$281 🟢<br><small>+78% vs $158</small></td>
+      <td class="dcf-green">$360 🟢<br><small>+128% vs $158</small></td>
+      <td class="dcf-green">$490 🟢<br><small>+210% vs $158</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 9%</td>
+      <td class="dcf-green">$168 🟢<br><small>+6% vs $158</small></td>
+      <td class="dcf-green">$213 🟢<br><small>+35% vs $158</small></td>
+      <td class="dcf-green">$265 🟢<br><small>+68% vs $158</small></td>
+      <td class="dcf-green">$355 🟢<br><small>+125% vs $158</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 10%</td>
+      <td class="dcf-yellow">$135 🟡<br><small>−15% vs $158</small></td>
+      <td class="dcf-yellow">$165 🟡<br><small>+4% vs $158</small></td>
+      <td class="dcf-green">$200 🟢<br><small>+27% vs $158</small></td>
+      <td class="dcf-green">$260 🟢<br><small>+65% vs $158</small></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  DCF is illustrative only. Terminal g = 3.0%. Base FCF = $8.98B USD (€8.24B at 1.09). Net cash = $2.3B added to equity value. Shares = 1.17B. All values rounded to nearest $5.<br>
+  Verdict: At a 9% WACC (reasonable for a Eurozone tech company with beta = 0.69), the stock appears undervalued under all scenarios except an extreme bear case where growth collapses from today's 21%+ trajectory to 8%. At 10% WACC, the stock is roughly fairly valued at the Base-Low scenario, with meaningful upside if the Base scenario materialises. The SAP ADR has fallen ~32% from its 52-week high, and consensus analyst price target of $340.75 (source: stockanalysis.com) implies +115% upside — consistent with the r=9% Base scenario. <strong>Key DCF risk:</strong> The FY2025 FCF of €8.24B is partially inflated by the end of large restructuring cash payments; a true normalised FCF might be closer to €7.0–7.5B, which would reduce implied values by approximately 10–15% across all scenarios. <strong>AI upside not fully modelled:</strong> SAP's 2028 €2B cost efficiency target from internal AI adoption, if achieved, could add €1.5B+ to annual FCF beyond these projections.<br>
+  Source: SAP FY2025 results (Jan 29, 2026) | stockanalysis.com SAP statistics | gurufocus.com forward PE 20.18x | consensus price targets Apr 2026
+</div>
+
+<!-- ④ MANAGEMENT COMMENTARY -->
+<h2>④ Management Commentary</h2>
+
+<div class="card management">
+  <h4 class="teal">Earnings Call Tone — Q4 &amp; FY2025 (January 29, 2026) | CEO: Christian Klein | CFO: Dominik Asam</h4>
+  <p>CEO Christian Klein opened the call with a notable dual narrative: celebrating record profitability and cash flow while simultaneously addressing investor concerns over a slight shortfall in current cloud backlog (CCB) growth. Klein attributed the CCB deceleration to two structural factors: (1) large transformational deals with multi-year revenue ramps, which inflate total cloud backlog but are excluded from the 12-month CCB metric, and (2) sovereign/government deals carrying termination-for-convenience clauses (also excluded from CCB). He said this explained approximately 1 percentage point of the CCB "miss" vs his prior guidance of 26%.</p>
+  <p style="margin-top:10px;"><strong>AI as primary growth driver:</strong> The most emphatic theme was the commercial traction of SAP Business AI and Joule. Klein confirmed that Business AI was included in two-thirds of Q4 cloud order entries, a 20+ percentage point increase from Q3. He noted that 90% of the 50 largest Q4 deals included either AI or SAP Business Data Cloud (BDC). Customer adoption of Joule, SAP's AI copilot, grew ninefold in 2025. Management explicitly argued that SAP's competitive advantage lies in its access to the world's largest volume of mission-critical business data — data that general-purpose LLMs cannot replicate. Klein stated: "Customers are realising they don't gain value by developing a number of custom AI agents or by applying commodity large language models on top of transactional business applications." He cited Siemens as a case study, where Joule enabled consultants to reinvest 25% of their weekly time into higher-value work.</p>
+  <p style="margin-top:10px;"><strong>FY2026 guidance:</strong> Cloud revenue €25.8–26.2B (+23–25%), Total revenue accelerating, Non-IFRS operating profit €11.9–12.3B (+14–18%), FCF ~€10B (record), effective tax rate ~27%. CFO Asam said current cloud backlog growth will "moderate slightly" across 2026 but rebound from Q4 2025 levels, with deceleration "meaningfully less" than in FY2025. He confirmed a goal to achieve a run rate of approximately €2B in annualised cost efficiencies by end-2028 through internal AI adoption (15–20% efficiency gain on addressable costs).</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Analyst Pushback &amp; Market Reaction</h4>
+  <p>SAP shares dropped sharply on earnings day — the largest single-day decline since 2020 on some exchanges — as investors focused on the CCB growth (25% at constant currencies vs. 26% guided), dismissing the record profitability and FCF beats. Analyst questions centred on: (1) whether the CCB deceleration signalled a structural slowdown or was truly mix/timing driven, (2) the pace of on-premise-to-cloud migrations (Customer NPS fell 3 points to 9, below target range 12–16, driven by on-premise customer dissatisfaction), and (3) whether the AI revenue contribution was embedded in deal values or separately measurable. Klein acknowledged the NPS decline as a concern specific to customers not yet on the cloud journey. Despite the single-day selloff, 52-week performance is down ~42% on Xetra, creating what some analysts characterise as a meaningful valuation opportunity at current prices (consensus target $340.75, implying +115% upside from ~$158 ADR).</p>
+</div>
+
+<!-- ⑤ RED FLAGS -->
+<h2>⑤ Red Flags Assessment</h2>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 1 — FY2021–FY2022 SBC: Qualtrics Shadow on Dilution</h4>
+  <p>SAP's FY2021 SBC of €2,794M (10.0% of revenue, per the 2021 20-F) was among the highest SBC-to-revenue ratios in enterprise software history for that year. It was driven by Qualtrics IPO equity-settled awards (€1,647M in FY2021 alone, vs €171M in FY2019). While the Qualtrics spin-off (January 2023) resolved this distortion, investors need to understand that for two years, approximately 10 cents of every euro in SAP revenue was being transferred to employees as share compensation. This was not disclosed prominently in headline results, which always featured non-IFRS metrics excluding SBC. The GAAP-to-non-IFRS operating margin gap of 12–14 pp in FY2021–FY2023 should be understood in this context — it was <em>primarily an SBC story</em>, not a restructuring or amortisation story. <span class="badge badge-red">Historical SBC Alert — Resolved</span></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 2 — IFRS Margin Volatility: A History of Restructuring Charges</h4>
+  <p>SAP has executed multiple restructuring programmes: in 2015, 2017, 2020, and most recently the 2024 Transformation Program (announced January 2024, ~8,000 roles affected, charge of €2.2B initially). The result is that GAAP/IFRS operating margins have been chronically depressed and unreliable as a profitability signal: FY2021 16.7%, FY2022 15.1%, FY2023 14.2%, FY2024 13.7% — all of which significantly understate true earnings power. Only in FY2025 (26.7%) does the IFRS margin approach the economic reality. This recurring restructuring pattern raises the question: will the 2028 "AI efficiency" programme trigger a new round of charges? Management's disclosure of a €2B run-rate efficiency target "by end of 2028" hints at ongoing workforce transformation. <span class="badge badge-yellow">Recurring Restructuring — Monitor</span></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 3 — Cloud Backlog Disclosure Risk &amp; Metric Complexity</h4>
+  <p>SAP now maintains two distinct backlog metrics: Total Cloud Backlog (€77.3B, 10-year-plus horizon) and Current Cloud Backlog (€21.1B, 12-month forward revenue). The divergence between these metrics — CCB growing at 25% while TCB grew 30% — has already spooked investors. The risk is that elongated deal structures (large transformational programmes with multi-year ramps) inflate TCB without generating near-term revenue, creating a disconnect between the reported backlog and near-term cash generation. Additionally, government/sovereign contracts excluded from CCB are growing as a share of new deals — reducing the comparability of CCB over time. Investors relying on CCB as their primary forward indicator may misread deceleration signals. <span class="badge badge-yellow">Metric Reliability Risk — Monitor</span></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 4 — Revenue Concentration in On-Premise Business (Declining)</h4>
+  <p>Software licenses revenue declined 29% in FY2025 to €0.99B and is in secular decline as SAP migrates customers to cloud. While this is strategically correct, the software licenses business carried very high operating margins and minimal incremental cost. Its decline creates a multi-year headwind to GAAP margins and NOPAT as the lower-margin, higher-investment cloud business becomes dominant. By FY2027, software licenses may approach near-zero. Customer NPS for on-premise customers fell to single digits, indicating migration frustration. If the migration timeline extends or customers defect to cloud-native ERP competitors (e.g., Oracle Fusion Cloud, Workday for HCM) during the transition, SAP's revenue growth could slow materially. <span class="badge badge-yellow">Structural Transition Risk — Monitor</span></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 5 — Teradata Litigation &amp; Regulatory Exposure</h4>
+  <p>SAP's FY2025 IFRS operating profit was negatively impacted by approximately €0.2B related to the Teradata litigation matter. This is disclosed as an ongoing legal risk in the 20-F. Additionally, SAP has faced significant US government scrutiny (including DOJ investigations in prior years related to export control violations) and EU data regulation complexities. While the Teradata charge is modest relative to SAP's earnings power, unresolved litigation creates tail-risk uncertainty in a company with high institutional ownership and ESG-focused investors. The US Navy being cited as a FY2025 customer win also highlights SAP's growing exposure to government sector risks including geopolitical and procurement policy changes. <span class="badge badge-red">Legal / Regulatory Risk — Active</span></p>
+</div>
+
+<!-- ⑥ CHARLIE MUNGER INVERSION -->
+<h2>⑥ Charlie Munger — Inversion Analysis</h2>
+
+<div class="card invert">
+  <h4 class="gold">Inversion 1 — What Would Make SAP a Permanent Value Destroyer?</h4>
+  <p>Invert the bull case: imagine a world where AI-native ERP systems (built from scratch on modern cloud infrastructure, without the technical debt of 50 years of legacy code) render SAP's S/4HANA suite obsolete within a decade. Startups like Workday (HCM), Rippling (HR), or a hypothetical AI-native ERP startup could offer better usability, faster implementation, and lower total cost of ownership. SAP's switching costs — while powerful — depend on the difficulty of migration, which AI-assisted implementation tools could dramatically reduce. If migration barriers fall from "prohibitive" to "challenging," SAP's moat narrows from structural to merely contractual. Additionally, if AI agents can perform finance, supply chain, and HR tasks without deep ERP integration, the value of the ERP layer itself may commoditise. SAP assumes it can embed AI into ERP to lock customers into the AI layer — but if the AI layer becomes the destination and ERP becomes a data conduit, power may shift to AI vendors (Microsoft Copilot, OpenAI, Anthropic enterprise offerings). The scenario where SAP becomes a "dumb pipe" — providing data storage for AI processes owned by others — would be catastrophic for its multiple.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Inversion 2 — What Would Cause SAP to Miss Its Cloud Backlog Permanently?</h4>
+  <p>The current cloud backlog of €21.1B is the primary forward-looking signal the market monitors. What could prevent this converting to revenue? First, enterprise budget freezes from a global recession would delay planned cloud migrations, particularly in cyclical sectors (manufacturing, automotive, retail) which form a large part of SAP's installed base. Second, customer dissatisfaction during migration (Customer NPS is already below target at 9) could cause mid-migration aborts, particularly for smaller customers managing the complexity of RISE with SAP. Third, hyperscaler partnerships (AWS, Microsoft Azure, Google Cloud) on which SAP relies for cloud infrastructure could impose unfavourable pricing or prioritise competing ERP offerings. Microsoft's ownership of Dynamics 365 creates a structural conflict of interest with SAP's Azure partnership. Fourth, large government clients with "termination for convenience" clauses (already excluded from CCB) represent a hidden revenue risk if procurement policies change — particularly relevant given current US government efficiency initiatives (DOGE-like programmes).</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Structural Weaknesses That Persist Regardless of Management Quality</h4>
+  <p>First, SAP is fundamentally a legacy ERP vendor attempting to rebrand as an AI-cloud company. Its S/4HANA codebase, while modernised, carries architectural constraints that cloud-native systems do not face. Second, SAP's customer base is concentrated in large enterprises (Fortune 500 and equivalent), which means SAP cannot access the hypergrowth SMB SaaS market without a fundamentally different product motion. Third, the GAAP-vs-non-IFRS complexity creates persistent investor confusion — SAP has changed its non-IFRS definition and in the past excluded metrics that made the company look better. This complexity is a governance concern. Fourth, SAP's geographic revenue mix (~71% non-euro) creates structural FX headwinds in USD-EUR strengthening cycles, as seen in FY2023 (€826M FX headwind). Fifth, the announced €10B buyback at current beaten-down prices is capital-efficient — but if the stock rebounds sharply, the buyback's timing benefit will have already passed.</p>
+</div>
+
+<!-- ⑦ GOLDEN TIPS -->
+<h2>⑦ Golden Tips — Analyst Watching Points</h2>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 1 — The Non-IFRS Definition Change: Read the Footnotes</h4>
+  <p>Starting FY2024, SAP redefined its non-IFRS operating profit to include SBC expenses. This is actually a positive transparency move — but it makes historical non-IFRS comparisons unreliable. Any analysis comparing "non-IFRS operating margin" of 29.6% in FY2021 to 28.3% in FY2025 is comparing apples and oranges. In FY2021, SBC of €2.79B was excluded from the non-IFRS figure; in FY2025, SBC (~€0.5B) is included. The true underlying operating margin improvement from FY2021 to FY2025 is dramatically larger than the non-IFRS numbers suggest. Lynch-style investors should always anchor to GAAP/IFRS operating margins — which improved from 16.7% (FY2021) to 26.7% (FY2025) — and adjust manually for recurring restructuring charges when assessing normalised earnings power.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 2 — Watch Current Cloud Backlog Growth as the Leading Indicator</h4>
+  <p>SAP's most important forward indicator is Current Cloud Backlog (CCB), which represents contracted revenue expected to be recognised in the next 12 months. It is a more reliable leading indicator of near-term revenue than total cloud backlog (which spans multiple years). CCB grew 25% in FY2025 and is guided to "moderate slightly" in 2026. For every investor, the critical number to monitor is the quarterly CCB growth at constant currencies — if this stays above 20%, SAP's cloud revenue growth of 23–26% per year is sustainable. If CCB drops below 15%, it is a serious warning sign. Track it every quarter alongside the cloud backlog mix (large transformational deals vs. standard migrations).</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 3 — FCF Quality: The Normalisation Test</h4>
+  <p>SAP's FY2025 FCF of €8.24B was partially inflated by two one-off factors reversing: (1) approximately €1.0B+ in restructuring cash payments that occurred in FY2024 but not FY2025, and (2) improved working capital as cloud subscription revenue creates smoother cash inflows than the old software license model. To assess the "real" FCF trajectory, investors should normalise FCF for restructuring cash payments and compare it to operating cash flow before restructuring. The 2026 guidance of €10B FCF — if achieved — would represent a genuine structural step-up. FY2027 and FY2028 FCF growth will be the true test of whether the AI-efficiency target (€2B annualised cost savings by 2028) is real. If FCF reaches €13–15B by 2028, the stock at current prices is dramatically undervalued.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 4 — On-Premise NPS as a Migration Stress Signal</h4>
+  <p>Customer NPS for on-premise customers fell to the single digits in FY2025 — a warning sign that not all SAP's 430+ million cloud users migrated happily. The RISE with SAP programme (the primary cloud migration vehicle) requires significant implementation investment (often 18–36 months), and customer frustration during migration is a known SAP risk. Watch the quarterly NPS disclosures. If overall NPS (currently 9, target 12–16) fails to recover toward the target range by mid-2026, it suggests that migration-related churn risk is growing. Any customer win reported by Oracle Fusion Cloud or Workday from the SAP installed base should be tracked as a direct indicator of competitive intensity in the transition window.</p>
+</div>
+
+<!-- ⑧ AI THREAT TO ENTERPRISE SAAS -->
+<h2>⑧ AI Threat to Enterprise SaaS — Industry Analysis &amp; SAP Positioning</h2>
+
+<div class="card ai-risk">
+  <h4 class="purple">The AI Disruption Thesis for Enterprise SaaS</h4>
+  <p>The central concern for enterprise SaaS investors in 2025–2026 is structural: AI agents and large language models are beginning to automate the workflows that enterprise software was built to manage — finance reconciliation, contract review, HR processing, customer service, supply chain optimisation, and tax filing. If AI can execute tasks directly, the role of the software that previously <em>managed</em> those tasks is called into question. Three disruption vectors are materialising simultaneously:</p>
+  <ul style="margin-top:10px">
+    <li><strong>Task-level AI substitution:</strong> AI tools (Copilot, Claude, Gemini) can now draft contracts, reconcile ledgers, process invoices, and answer complex compliance queries — tasks that drove subscriptions in legal tech, accounting software, and CRM platforms.</li>
+    <li><strong>Seat-based pricing erosion:</strong> Much of enterprise SaaS revenue is seat-based. If AI agents reduce the number of human seats needed to perform the same workflows (e.g., one AI agent replaces 10 customer service reps), the total addressable market for per-seat SaaS contracts shrinks.</li>
+    <li><strong>New ERP-native AI entrants:</strong> Startups building ERP and business process software from scratch with AI as the foundation (not as a feature layer) could potentially offer superior total cost of ownership, faster implementation, and better usability than systems carrying 20–50 years of architectural legacy.</li>
+  </ul>
+</div>
+
+<div class="card ai-risk">
+  <h4 class="purple">SAP's AI Positioning — Moat or Mirage?</h4>
+  <p>SAP's strategic response to the AI threat is to argue that it <em>is</em> the AI advantage — that access to its vast store of mission-critical enterprise business data (finance, supply chain, HR, procurement across hundreds of industry verticals) gives SAP-embedded AI a structural edge over generic LLMs. The key components of this thesis:</p>
+  <ul style="margin-top:10px">
+    <li><strong>Joule AI copilot:</strong> Embedded across SAP applications, Joule can access business context (transaction history, workflows, company-specific data) that external LLMs cannot. Adoption grew ninefold in FY2025; ~60% of cloud customers actively using SAP AI.</li>
+    <li><strong>Business Data Cloud (BDC):</strong> SAP's new data product (in partnership with Databricks and Snowflake) harmonises business data from across SAP and non-SAP systems, positioning SAP as the enterprise data layer for AI workloads. BDC was already part of large deals including Adobe and GSK.</li>
+    <li><strong>AI Agents and Agent Builder:</strong> SAP is building AI agents that operate within business processes (not just recommend actions), using the semantic understanding of ERP data to execute tasks autonomously. Management committed to 40+ pre-built agents covering finance, supply chain, and HR by end-2025.</li>
+    <li><strong>Data moat:</strong> SAP processes 87% of global commerce transactions, including supply chain data for most of the Fortune 500. This data advantage is genuinely hard to replicate and gives SAP-embedded AI an accuracy advantage for business-specific use cases.</li>
+  </ul>
+  <p style="margin-top:10px;"><strong>The counter-risk:</strong> SAP assumes it can sell AI as a premium feature within its existing contracts — but if AI becomes the default capability of all enterprise software (commoditised), the pricing power SAP hopes to extract from AI may not materialise. Furthermore, if Microsoft (which controls Azure and has deep Copilot penetration in SAP customers' environments) provides comparable AI value directly through its own ERP integration layer, SAP's AI premium could be competed away. The 2025 Perplexity partnership and the 2024 WalkMe acquisition are attempts to broaden the AI surface area — but they also indicate that SAP is not winning AI natively without acquisitions.</p>
+  <p style="margin-top:10px;"><strong>Current verdict:</strong> SAP's AI positioning is defensible in the near term (3–5 years) due to data advantages and switching cost moats. The long-term (5–10 year) risk is real but not existential at current valuations — the market is arguably already pricing in significant AI-disruption risk given the 42% share price decline from the 52-week high.</p>
+</div>
+
+<!-- ⑨ RISKS AND OPPORTUNITIES -->
+<h2>⑨ Risks &amp; Opportunities — SAP SE</h2>
+
+<div class="card golden">
+  <h4 class="green">Key Opportunities</h4>
+  <ul>
+    <li><strong>Cloud ERP migration runway:</strong> SAP's installed base includes thousands of on-premise ERP customers (SAP ECC, SAP R/3, SAP Business Suite) who must migrate to S/4HANA cloud by 2027 (end of mainstream maintenance). This creates a multi-year compulsory migration wave — a captive demand pool for cloud subscription upsell.</li>
+    <li><strong>AI monetisation:</strong> Business AI is included in standard cloud contracts today (minimal additional pricing). As SAP develops premium AI tiers (autonomous agents, BDC premium, AI copilot seat licences), AI monetisation could add 3–5% to annual revenue growth beyond what is currently modelled — a significant upside scenario given the 2028 €2B internal efficiency target.</li>
+    <li><strong>SAP Business Data Cloud (BDC) as a new revenue stream:</strong> BDC positions SAP as an enterprise data platform, potentially competing with Snowflake and Databricks in the rapidly growing AI data infrastructure market. This is an entirely new TAM (total addressable market) for SAP beyond traditional ERP.</li>
+    <li><strong>Margin expansion trajectory:</strong> Non-IFRS operating margin of 28.3% in FY2025 should expand toward 30%+ as cloud revenue scale benefits take hold and software license revenue (low-margin) declines. Management has guided operating profit of €11.9–12.3B for FY2026, implying non-IFRS op margin of approximately 32% on guided revenue. This is a significant structural profitability step-up.</li>
+    <li><strong>€10B buyback programme (FY2026–FY2027):</strong> At current depressed prices (~€145 on Xetra, vs. consensus target significantly higher), the €10B buyback programme represents ~6% of current market cap and is highly accretive if executed near current prices. This signals management conviction in intrinsic value significantly above current market price.</li>
+    <li><strong>Valuation re-rating opportunity:</strong> SAP trades at ~20x forward earnings — below its 5-year average PE and at a significant discount to US-listed peers like ServiceNow (40–50x) and Workday. As cloud transition risks become more visible as progress (rather than uncertainty), a multiple re-rating toward 25–30x forward earnings could add substantial value.</li>
+  </ul>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Key Risks</h4>
+  <ul>
+    <li><strong>Macroeconomic recession / IT budget freeze:</strong> SAP's revenue is derived from large enterprise contracts, which are the first to be renegotiated during budget freezes. A global recession in 2026–2027 would delay cloud migrations and potentially see customers extend legacy maintenance agreements rather than commit to new cloud subscriptions. This is the single largest near-term revenue risk.</li>
+    <li><strong>FX headwinds:</strong> 71% of SAP's revenue is generated outside the eurozone. A strengthening euro vs. USD (SAP's largest non-euro market) creates persistent translation headwinds. In FY2023, FX reduced reported revenue by €826M. A return to EUR strength (e.g., if US trade policy triggers USD weakness) could depress reported euro revenues materially.</li>
+    <li><strong>Competition from Oracle and Microsoft:</strong> Oracle Fusion Cloud ERP and Microsoft Dynamics 365 are the two primary competitive threats in cloud ERP. Oracle has aggressively won SAP displacements in manufacturing and distribution; Microsoft's Copilot-Azure integration gives it a unique AI sales motion within existing Microsoft 365 customer relationships. Both represent intensifying competitive pressure on SAP's migration pipeline.</li>
+    <li><strong>AI-native ERP disruption (long-term):</strong> Startups building LLM-native enterprise software from the ground up could create a structural disadvantage for SAP's modernised-but-legacy architecture within 5–10 years. The speed of AI capability development means this timeline could compress.</li>
+    <li><strong>Customer NPS / migration churn:</strong> On-premise Customer NPS is already in single digits. If migration satisfaction does not improve, long-term customers who feel forced into cloud migrations at high cost may defect to competitors upon contract renewal. Any significant disclosed customer win by Oracle or Workday from the SAP installed base would be a material negative signal.</li>
+    <li><strong>Geopolitical / sovereignty risk:</strong> SAP operates in 180+ countries and has exposure to geopolitical fragmentation (China data localisation, US export controls, EU AI Act compliance). Government sovereign cloud deals — which are growing as a share of new business — carry termination-for-convenience clauses and create volatility in the CCB metric, as SAP itself disclosed in Q4 2025.</li>
+    <li><strong>Integration risk from acquisitions:</strong> SAP has made significant acquisitions in recent years (WalkMe 2023, LeanIX 2023, Taulia earlier). Integration of these assets into the SAP Business Technology Platform is ongoing. If the integrations fail to deliver the promised value or create customer complexity, they could become margin and retention headwinds.</li>
+  </ul>
+</div>
+
+<!-- ⑩ AI SAAS DISRUPTION RISK — COMPETITOR RANKING TABLE -->
+<h2>⑩ AI SaaS Disruption Risk — Competitor Ranking</h2>
+
+<div class="card ai-risk" style="margin-bottom:18px;">
+  <h4 class="purple">Ranking Methodology</h4>
+  <p>Companies are ranked by their estimated exposure to AI-driven disruption of their core revenue streams. The ranking considers: (1) degree to which core workflows can be automated by AI agents or LLMs, (2) reliance on per-seat or usage-based pricing that shrinks with AI adoption, (3) existence of data moats or regulatory barriers that protect against AI commoditisation, and (4) the company's own AI strategy and execution. A "HIGH" risk rating does not mean the company will fail — it means AI disruption poses a material threat to current revenue models within 5–7 years.</p>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th style="width:35px">Rank</th>
+      <th class="row-head">Company (Ticker)</th>
+      <th>AI Disruption Risk</th>
+      <th>Core Vulnerability</th>
+      <th>Protective Moat</th>
+      <th>AI Strategy Quality</th>
+      <th>Revenue at Risk</th>
+      <th>Lynch Verdict</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="font-weight:700;font-family:monospace">1</td>
+      <td class="row-label">Adobe (ADBE)<br><small>Creative &amp; Marketing SaaS</small></td>
+      <td class="cell-bad"><span class="risk-rank-high">🔴 VERY HIGH</span></td>
+      <td style="font-size:11.5px;text-align:left">Generative AI tools (Midjourney, DALL-E, Sora, Runway) directly compete with Photoshop, Illustrator, Premiere. Firefly AI is Adobe's response but may commoditise its own product. Per-seat Creative Cloud pricing at risk as AI reduces designers needed per firm.</td>
+      <td style="font-size:11.5px;text-align:left">Deep creative workflow integration; enterprise legal/compliance moats; Document Cloud (PDFs, Acrobat); marketing analytics (Marketo, Adobe Analytics) harder to disrupt</td>
+      <td style="text-align:center"><span class="badge badge-yellow">Moderate</span><br><small>Firefly is reactive; Semrush acquisition adds data</small></td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">~40–50% of Creative Cloud seats threatened mid-term</td>
+      <td class="cell-bad" style="font-size:11.5px;text-align:left">❌ Forward PE compressed to ~12x (market already pricing disruption). Growth decelerating to ~9%. SBC 15%+ of revenue. Avoid unless narrative changes.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;font-family:monospace">2</td>
+      <td class="row-label">Intuit (INTU)<br><small>Tax, Accounting &amp; SMB Finance</small></td>
+      <td class="cell-bad"><span class="risk-rank-high">🔴 HIGH</span></td>
+      <td style="font-size:11.5px;text-align:left">TurboTax core franchise under direct attack from AI-powered free tax preparation (CoPilot Tax, free government e-filing initiatives). QuickBooks AI competitors (Wave, Bench AI) growing. AI could commoditise bookkeeping entirely for SMBs.</td>
+      <td style="font-size:11.5px;text-align:left">Network effects in professional tax prep; IRS partnership moats; Credit Karma consumer data; MailChimp marketing platform; deep SMB penetration</td>
+      <td style="text-align:center"><span class="badge badge-yellow">Moderate</span><br><small>Intuit Assist AI copilot is early; GenOS platform</small></td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">TurboTax Online units declined 1% FY2025; material risk to $5B+ segment</td>
+      <td class="cell-warn" style="font-size:11.5px;text-align:left">⚠️ Strong near-term financials (revenue +16% FY2025) but TurboTax decline is a secular concern. Premium multiple (~25x) leaves little margin for error.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;font-family:monospace">3</td>
+      <td class="row-label">Salesforce (CRM)<br><small>CRM &amp; Customer Data</small></td>
+      <td class="cell-warn"><span class="risk-rank-high">🔴 HIGH</span></td>
+      <td style="font-size:11.5px;text-align:left">AI agents (Claude, Copilot, GPT-4) can now draft emails, manage pipelines, update records, and produce forecasts — the core manual tasks CRM users perform. Agentforce (SAP's competitor) shows CRM vendors are themselves disrupting their seat-based models.</td>
+      <td style="font-size:11.5px;text-align:left">World's largest CRM installed base; platform ecosystem (AppExchange); Data Cloud (customer data unification); Agentforce could become new revenue model if AI is additive</td>
+      <td style="text-align:center"><span class="badge badge-green">Good</span><br><small>Agentforce is genuine AI agent platform; Informatica adds data</small></td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">Seat-based pricing at medium risk; platform value protected</td>
+      <td class="cell-warn" style="font-size:11.5px;text-align:left">⚠️ FCW improving; SBC declining to 8%. Agentforce could shift model from per-seat to per-outcome — accretive if executed. Informatica integration is near-term drag.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;font-family:monospace">4</td>
+      <td class="row-label">Wolters Kluwer (WKL)<br><small>Legal, Tax &amp; Compliance Info</small></td>
+      <td class="cell-warn"><span class="risk-rank-med">🟡 MEDIUM-HIGH</span></td>
+      <td style="font-size:11.5px;text-align:left">AI legal research tools (Harvey AI, Thomson Reuters AI) are directly competing with Wolters Kluwer's legal and compliance databases. AI contract review reduces the need for per-user research subscriptions. LegalZoom stock dropped when Anthropic released legal automation tools.</td>
+      <td style="font-size:11.5px;text-align:left">Regulatory complexity requires verified, audited sources — AI hallucination risk creates demand for authoritative databases; deep workflow integration in professional tools</td>
+      <td style="text-align:center"><span class="badge badge-yellow">Moderate</span><br><small>Investing in AI-assisted compliance tools; Expert Solutions</small></td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">Research/database segment at medium risk; compliance workflows more protected</td>
+      <td class="cell-warn" style="font-size:11.5px;text-align:left">⚠️ Strong financials and 6% organic growth. Regulatory moat is real. AI risk is 5–7 year horizon, not imminent. High-quality Stalwart at a reasonable valuation.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;font-family:monospace">5</td>
+      <td class="row-label">SAP SE (SAP)<br><small>Enterprise ERP &amp; Cloud Suite</small></td>
+      <td class="cell-warn"><span class="risk-rank-med">🟡 MEDIUM</span></td>
+      <td style="font-size:11.5px;text-align:left">Long-term threat from AI-native ERP entrants. Microsoft Dynamics + Copilot integration creates competitive pressure. If AI reduces implementation complexity, SAP's moat from switching costs narrows. Commoditisation of ERP data layers is a 10-year risk.</td>
+      <td style="font-size:11.5px;text-align:left">Unparalleled business data: 87% of global commerce processed through SAP. 50+ years of ERP logic embedded. Industry vertical depth. RISE with SAP migration lock-in. Joule AI embedded directly in workflows.</td>
+      <td style="text-align:center"><span class="badge badge-green">Strong</span><br><small>Joule, BDC, 40+ AI agents; data moat is genuine</small></td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">Near-term risk LOW; medium-term MEDIUM; current data advantage is meaningful</td>
+      <td class="cell-good" style="font-size:11.5px;text-align:left">✅ Best AI positioning of ERP peers. PEG 1.19x is attractive for growth profile. Stock selloff appears AI-fear driven, not fundamentals driven. Compelling risk/reward.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;font-family:monospace">6</td>
+      <td class="row-label">ADP (ADP)<br><small>Payroll, HR &amp; Benefits</small></td>
+      <td class="cell-warn"><span class="risk-rank-med">🟡 MEDIUM</span></td>
+      <td style="font-size:11.5px;text-align:left">AI can automate payroll processing, benefits administration, and basic HR functions. Competitive pressure from Gusto, Rippling (AI-native payroll). Float income model (interest on client funds) faces rate-cycle risk.</td>
+      <td style="font-size:11.5px;text-align:left">Regulatory compliance complexity (federal/state tax rules, benefits regulation) requires verified processing — AI error risk keeps humans in loop. 900K+ clients. Float income is a structural advantage.</td>
+      <td style="text-align:center"><span class="badge badge-yellow">Moderate</span><br><small>Next Gen HCM AI features; GenAI integration in payroll</small></td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">Core payroll protected by compliance moats; benefits and workforce analytics more exposed</td>
+      <td class="cell-good" style="font-size:11.5px;text-align:left">✅ Stalwart quality with ROIC 30%+. Dividend compounder. AI risk is real but medium-term. Valuation reasonable at ~22–24x forward. Defensive holding.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;font-family:monospace">7</td>
+      <td class="row-label">ServiceNow (NOW)<br><small>IT Service Mgmt &amp; Workflows</small></td>
+      <td class="cell-good"><span class="risk-rank-low">🟢 LOW-MEDIUM</span></td>
+      <td style="font-size:11.5px;text-align:left">IT workflow complexity means AI is more augmentation than substitution. AI-native ITSM tools exist but lack enterprise integration depth. Seat-based pricing model could shift if AI agent seats grow — but this may be additive.</td>
+      <td style="font-size:11.5px;text-align:left">Deep enterprise workflow platform with 6,600+ customers. Now Platform is infrastructure-level; switching costs are extreme. AI agents (Now Assist) are being sold as premium add-ons at high ASPs.</td>
+      <td style="text-align:center"><span class="badge badge-green">Excellent</span><br><small>Now Assist is leading enterprise AI workflow agent</small></td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">AI is actually a revenue tailwind via premium Now Assist pricing</td>
+      <td class="cell-warn" style="font-size:11.5px;text-align:left">⚠️ Best-positioned AI enabler, but 40–50x forward PE leaves zero margin for error. SBC 15–18% is a structural concern. Stock already down 37% from 52-week high.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;font-family:monospace">8</td>
+      <td class="row-label">Veeva Systems (VEEV)<br><small>Life Sciences Cloud</small></td>
+      <td class="cell-good"><span class="risk-rank-low">🟢 LOW</span></td>
+      <td style="font-size:11.5px;text-align:left">Narrow life sciences vertical with highly regulated workflows (FDA compliance, clinical trial data, pharmacovigilance). AI cannot simply replace validated, audited processes. Customer data is highly sensitive and AI hallucination risk is unacceptable in drug development.</td>
+      <td style="font-size:11.5px;text-align:left">Dominant in life sciences CRM (Vault CRM displacing Salesforce). No meaningful AI-native competitor in the regulated pharma ERP/CRM space. FDA compliance moat is near-impenetrable.</td>
+      <td style="text-align:center"><span class="badge badge-green">Good</span><br><small>Vault CRM Bot, AI agents built on Anthropic/Amazon Bedrock</small></td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">Regulation protects core revenue; AI adds value as feature</td>
+      <td class="cell-good" style="font-size:11.5px;text-align:left">✅ Lowest AI disruption risk in peer group. FCF margin 44% is extraordinary. $6.46B net cash. Targeting $6B revenue by FY2030 (2x from $3B). High-quality niche compounder.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  AI Disruption Risk Ranking Notes: Rankings are the author's assessment based on publicly available information and represent medium-term (5–7 year) structural risk exposure, not short-term earnings risk. "LOW" risk does not mean immunity to AI disruption — it means the company's regulatory environment, switching costs, or AI-first strategic positioning provides meaningful protection. Rankings are not investment recommendations.<br>
+  Sources: Adobe FY2025 8-K (Dec 2025) | Salesforce Agentforce launch (Sep 2025) | Intuit FY2025 8-K (Aug 2025) | ServiceNow Now Assist launch and pricing disclosures | Veeva Systems FY2026 8-K filings | Tradingview.com "Why software stocks like Adobe, Salesforce, ServiceNow are crashing" (Feb 4, 2026) | Anthropic legal automation tool announcement (Feb 2026) | SAP BDC and Joule disclosures (FY2025 IR) | stockanalysis.com/stocks/veev (FCF margin, net cash)
+</div>
+
+<footer>
+  <strong>SOURCES &amp; CITATIONS</strong><br>
+  [1] SAP SE Q4 &amp; FY2025 Results Press Release — January 29, 2026 | news.sap.com<br>
+  [2] SAP SE Q4 &amp; FY2025 Quarterly Statement — January 29, 2026 | sap.com/investors<br>
+  [3] SAP SE FY2024 Results &amp; Q4 2024 Quarterly Statement — January 28, 2025 | SEC 6-K filing<br>
+  [4] SAP SE Annual Report 2021 / 20-F — SEC filing (SBC disclosure: €2,794M FY2021 confirmed)<br>
+  [5] SAP SE Annual Report 2024 / 20-F — February 27, 2025 | SEC filing<br>
+  [6] SAP SE FY2022 Results Press Release — January 26, 2023 | PR Newswire<br>
+  [7] SAP SE FY2023 Results Press Release — January 23, 2024 | PR Newswire<br>
+  [8] SAP Investor Relations — Recent Results page | sap.com/investors/en/financial-documents-and-events/recent-results.html<br>
+  [9] stockanalysis.com/stocks/sap/statistics — SAP Statistics &amp; Valuation (ROIC 17.40%, PEG 1.19, Fwd PE 20.18)<br>
+  [10] stockanalysis.com/quote/etr/SAP/statistics — SAP.DE Statistics (Fwd PE 19.99, EPS €6.10, D/E 0.17)<br>
+  [11] gurufocus.com/term/forward-pe-ratio/SAP — SAP Forward PE 20.18x (as of March 4, 2026)<br>
+  [12] stockanalysis.com/stocks/now/statistics — ServiceNow Statistics (ROIC 17.80%)<br>
+  [13] stockanalysis.com/stocks/crm/statistics — Salesforce Statistics (ROIC 6.80%, GAAP Op Margin 21.47%)<br>
+  [14] stockanalysis.com/stocks/veev/statistics — Veeva Statistics (Net Cash $6.46B, Revenue $3.20B)<br>
+  [15] Adobe FY2025 8-K (Q1 FY2026 results Dec 2025) | SEC filing — GAAP Op Margin 36%<br>
+  [16] Intuit FY2025 8-K (Full Year August 2025) | SEC filing — Revenue $18.83B, GAAP Op Income $4.92B<br>
+  [17] ADP Q2 FY2026 8-K (February 2026) | SEC filing<br>
+  [18] Wolters Kluwer FY2025 Guidance page | wolterskluwer.com/en/investors/financials/guidance<br>
+  [19] Veeva Systems FY2026 8-K filings (Q1–Q3 FY2026) | SEC filing — SBC ~15% of revenue confirmed<br>
+  [20] SAP Q4 2025 Earnings Call Highlights | finance.yahoo.com (January 29, 2026)<br>
+  [21] ASUG Insights — "Q4 and FY2025: SAP Delivers Record Cloud Growth" | asug.com (January 30, 2026)<br>
+  [22] Investing.com — "SAP Q4 2025 slides: cloud revenue surges 26%, free cash flow nearly doubles" | January 29, 2026<br>
+  [23] SAPinsider.org — "SAP Q4 2025 Earnings: Cloud Backlog, Outlook Slips Despite Record Profit" | January 29, 2026<br>
+  [24] Futurum Group — "SAP Delivers 28% Cloud Growth, Reaffirms FY2025 Outlook" | July 23, 2025<br>
+  [25] Futurum Group — "SAP Q4 FY2025 Earnings: Cloud ERP Strength, AI Traction" | February 2, 2026<br>
+  [26] CX Today — "SAP Business AI Drives Two-Thirds of Q4 Cloud Deals" | January 29, 2026<br>
+  [27] Investing.com — "Earnings call transcript: SAP's Q4 2025 results miss forecasts, shares drop" | February 3, 2026<br>
+  [28] SEC 6-K filings (Q1–Q4 2024, Q1–Q3 2025) | sec.gov (IFRS quarterly operating margins confirmed)<br>
+  [29] Tradingview.com / Invezz — "Why software stocks like Adobe, Salesforce, ServiceNow are crashing" | February 4, 2026<br>
+  [30] IntuitionLabs — "Veeva Systems VEEV 2026 Long-Term Investment Analysis" | January 12, 2026<br>
+  [31] Companiesmarketcap.com — SAP Revenue 2024: €34.17B; 2023: €31.20B | companiesmarketcap.com/eur/sap<br>
+  [32] IgniteSAP — "SAP Financial Results Q4 and Full Year 2023" | January 24, 2024 | ignitesap.com<br>
+  [33]
+  <strong>DISCLAIMER</strong> This report is produced for informational and educational purposes only and does not constitute investment advice, a solicitation, or a recommendation to buy or sell any security. All data is sourced from publicly available information and believed accurate at the time of compilation (April 9, 2026) but may contain errors or omissions. Forward-looking statements and DCF outputs are illustrative estimates based on stated assumptions — not forecasts. Historical financial performance is not indicative of future results. Price targets quoted are third-party analyst estimates and are not endorsed. Always conduct independent due diligence and consult a qualified financial adviser before making investment decisions. The analyst has no position in SAP SE or any named security.
+</footer>
+
+</body>
+</html>

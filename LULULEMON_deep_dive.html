@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lululemon (LULU) — Peter Lynch Financial & SBC Impact Screener Deep-Dive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:180px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}.trend-down{color:var(--red);font-weight:600}
+  .anomaly{color:var(--accent);font-weight:700}.na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}.cell-good{background:#e8f5e9}.cell-warn{background:#fff8e1}.cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}.dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}.dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}.card.invert{border-left-color:var(--gold)}.card.golden{border-left-color:var(--green)}.card.management{border-left-color:var(--teal)}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}.card h4.gold{color:var(--gold)}.card h4.teal{color:var(--teal)}.card h4.green{color:var(--green)}
+  .card p,.card li{font-size:13px;line-height:1.7}.card ul{padding-left:18px}.card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}.badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}.badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}.cat-fast{background:#f3e5f5;color:#6a1b9a}.cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px}
+  .stat-box{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center}.stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>lululemon athletica inc.</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: LULU · NASDAQ</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>April 8, 2026</span></div>
+    <div class="meta-item">Price: <span>~$153–$156</span></div>
+    <div class="meta-item">Market Cap: <span>~$18.1B</span></div>
+    <div class="meta-item">Category: <span><span class="category-badge cat-turnaround">Turnaround / Decelerating Stalwart</span></span></div>
+    <div class="meta-item">HQ: <span>Vancouver, BC, Canada</span></div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">TTM Revenue</div>
+    <div class="stat-val">$11.1B</div>
+    <div class="stat-sub">FY2025 (ended Feb 1, 2026)</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">GAAP Op Margin (TTM)</div>
+    <div class="stat-val" style="color:var(--red)">~20%</div>
+    <div class="stat-sub">Down from 23.7% in FY2024</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">ROIC (TTM)</div>
+    <div class="stat-val" style="color:var(--green)">30.6%</div>
+    <div class="stat-sub">Source: StockAnalysis</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Fwd P/E</div>
+    <div class="stat-val">~12.9x</div>
+    <div class="stat-sub">StockAnalysis / CNBC</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FCF Yield (TTM)</div>
+    <div class="stat-val" style="color:var(--green)">~5.6%</div>
+    <div class="stat-sub">Source: FinanceCharts</div>
+  </div>
+</div>
+
+<!-- ① 5-YEAR FINANCIAL TREND TABLE -->
+<h2>① 5-Year Financial Trend</h2>
+
+<div class="card management" style="margin-bottom:18px;">
+  <h4 class="teal">⚠ FCF Volatility Flag</h4>
+  <p>FCF swung from <strong>$995M (FY2021)</strong> → <strong>$328M (FY2022, −67%)</strong> → <strong>$1.64B (FY2023, +401%)</strong> → <strong>$1.58B (FY2024, −3.7%)</strong> → <strong>~$922M–$1.17B (FY2025, −27% to −41%)</strong>. The FY2022 drop and FY2023 rebound both exceeded 25% — classified as <strong class="anomaly">High FCF Volatility</strong>. Operating cash flow fell ~29.5% in FY2025, a significant deterioration. Cross-checked: MacroTrends, Yahoo Finance cash flow data, StockTitan FY2026 filing.</p>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>FY2021<br><small>(ended Jan 30, 2022)</small></th>
+      <th>FY2022<br><small>(ended Jan 29, 2023)</small></th>
+      <th>FY2023<br><small>(ended Jan 28, 2024)</small></th>
+      <th>FY2024<br><small>(ended Feb 2, 2025)</small></th>
+      <th>FY2025<br><small>(ended Feb 1, 2026)</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Revenue (bn)</td>
+      <td>$6.26B</td>
+      <td>$8.11B</td>
+      <td>$9.62B</td>
+      <td>$10.59B</td>
+      <td>$11.10B</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth %</td>
+      <td class="trend-up">+42%</td>
+      <td class="trend-up">+30%</td>
+      <td class="trend-up">+19%</td>
+      <td class="trend-up">+10%</td>
+      <td class="trend-down">+5% <small>(53rd wk adj. ~+4%)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">Comparable Sales Growth %</td>
+      <td class="trend-up">~+32% <small>(stores excl. COVID)</small></td>
+      <td class="trend-up">~+27%</td>
+      <td class="trend-up">+13% <small>(FY full-year avg)</small></td>
+      <td class="trend-up">+4% <small>(excl. 53rd wk)</small></td>
+      <td class="trend-down anomaly">+2% <small>⚑ Americas comp −1%</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">Store Count (end of period)</td>
+      <td>552</td>
+      <td>655</td>
+      <td>711</td>
+      <td>767</td>
+      <td>811</td>
+    </tr>
+    <tr>
+      <td class="row-label">Gross Margin %</td>
+      <td class="trend-up">57.7%</td>
+      <td class="trend-up">57.4%</td>
+      <td class="trend-up">58.3%</td>
+      <td class="trend-up">59.2%</td>
+      <td class="trend-down anomaly">~58.4% <small>⚑ Q4 FY25 crashed to 54.9%</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Margin %</td>
+      <td class="trend-down">18.6%</td>
+      <td class="trend-up">21.3%</td>
+      <td class="trend-down">16.4% <small>(Studio impairments)</small></td>
+      <td class="trend-up">23.7%</td>
+      <td class="trend-down anomaly">~20% <small>⚑ Tariff + markdown pressure</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF (company-reported, mn)</td>
+      <td class="trend-up">$995M</td>
+      <td class="anomaly">$328M <small>⚑ −67% YoY</small></td>
+      <td class="anomaly">$1,644M <small>⚑ +401% YoY</small></td>
+      <td class="trend-down">$1,583M <small>−3.7%</small></td>
+      <td class="trend-down anomaly">~$922M–$1,168M <small>⚑ −27% to −41%</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">Operating Cash Flow (mn)</td>
+      <td>$1,389M</td>
+      <td>$966M</td>
+      <td>$2,296M</td>
+      <td>$2,273M</td>
+      <td class="trend-down anomaly">~$1,912M <small>⚑ −29.5% YoY</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">Capital Expenditures (mn)</td>
+      <td>$394M</td>
+      <td>$639M</td>
+      <td>$652M</td>
+      <td>$689M</td>
+      <td>$744M</td>
+    </tr>
+    <tr>
+      <td class="row-label">CapEx as % of Op Cash Flow</td>
+      <td class="trend-up">28%</td>
+      <td class="anomaly">66% <small>⚑ Near 70% red flag</small></td>
+      <td class="trend-down">28%</td>
+      <td class="trend-up">30%</td>
+      <td class="trend-down anomaly">~39% <small>Rising on weaker OpCF</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="trend-up">~32%</td>
+      <td class="trend-up">~38%</td>
+      <td class="trend-down">~28%</td>
+      <td class="trend-up">~45%</td>
+      <td class="trend-down">~31% <small>(TTM StockAnalysis)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend per Share</td>
+      <td class="na">None</td>
+      <td class="na">None</td>
+      <td class="na">None</td>
+      <td class="na">None</td>
+      <td class="na">None</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Growth %</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Yield %</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E (current only)</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td><strong>~12.9x</strong></td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio (current only)</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td><strong>1.89</strong></td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity %</td>
+      <td class="trend-up">Net Cash</td>
+      <td class="trend-up">Net Cash</td>
+      <td class="trend-up">Net Cash</td>
+      <td class="trend-up">Net Cash</td>
+      <td class="trend-up">Net Cash <small>($9M net cash)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td>~2.0%</td>
+      <td>~0.5%</td>
+      <td>~2.0%</td>
+      <td>~4.3%</td>
+      <td class="trend-up"><strong>~5.6%</strong> <small>(TTM)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC as % of Revenue</td>
+      <td>~1.1%</td>
+      <td>~0.9%</td>
+      <td>~0.8%</td>
+      <td>~0.9%</td>
+      <td>~0.8% <small>(est., FY25 SBC ~$90M)</small></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="note">
+ANOMALY FLAGS: (1) FY2022 FCF −67% YoY due to elevated CapEx (capex up 62% YoY) — heavy distribution center + cloud infra investment. (2) FY2023 FCF +401% YoY — CapEx growth moderated to +2% while Op Cash Flow surged +138%. (3) FY2022 Operating Margin dipped to 16.4% due to lululemon Studio goodwill/asset impairments. (4) FY2025 Q4 gross margin collapsed to 54.9% (−550bps YoY) driven by tariffs ($275M gross impact) and heavy markdowns. (5) FY2025 Op Cash Flow −29.5% YoY despite higher revenue — inventory up 18% to $1.7B, a red flag for working capital deterioration. | Sources: MacroTrends, Yahoo Finance (Cash Flow Statements), lululemon IR Press Releases (Mar 2025 & Mar 2026), StockAnalysis.com statistics, Stock-Analysis-on.net profitability analysis, CNBC earnings coverage, StockTitan FY2026 filing summary.
+</div>
+
+<!-- ② LYNCH SCREENER COMPETITOR BENCHMARK -->
+<h2>② Lynch Screener — Competitor Benchmark</h2>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>LULU<br>lululemon</th>
+      <th>DECK<br>Deckers</th>
+      <th>NKE<br>Nike</th>
+      <th>ONON<br>On Holding</th>
+      <th>LEVI<br>Levi Strauss</th>
+      <th>ADS<br>adidas</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Lynch Category</td>
+      <td class="cell-warn">⚠️ Turnaround / Decelerating Stalwart</td>
+      <td class="cell-warn">⚠️ Decelerating Fast Grower</td>
+      <td class="cell-warn">⚠️ Turnaround</td>
+      <td class="cell-trophy">🏆 Fast Grower</td>
+      <td class="cell-good">✅ Turnaround</td>
+      <td class="cell-good">✅ Turnaround</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth (TTM / Latest FY)</td>
+      <td class="cell-warn">⚠️ +5% <small>(FY25 vs FY24)</small></td>
+      <td class="cell-warn">⚠️ +~4% <small>(decelerating)</small></td>
+      <td class="cell-bad">❌ −4% <small>(FY25 revenue decline)</small></td>
+      <td class="cell-trophy">🏆 +30% <small>(FY2025, CHF basis)</small></td>
+      <td class="cell-good">✅ +4% <small>(FY2025 reported; +7% organic)</small></td>
+      <td class="cell-good">✅ +~10% <small>(EUR basis FY2024)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="cell-good">✅ 31% <small>(TTM)</small></td>
+      <td class="cell-trophy">🏆 88% <small>(TTM — asset-light model)</small></td>
+      <td class="cell-warn">⚠️ 14% <small>(declining)</small></td>
+      <td class="cell-good">✅ 35% <small>(TTM; rising)</small></td>
+      <td class="cell-warn">⚠️ ~10–12% <small>(est.)</small></td>
+      <td class="cell-warn">⚠️ 11–15% <small>(recovering from near-zero)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Op Margin %</td>
+      <td class="cell-good">✅ ~20% <small>(FY25; was 23.7%)</small></td>
+      <td class="cell-trophy">🏆 ~20% <small>(asset-light leverage)</small></td>
+      <td class="cell-warn">⚠️ ~5–7% <small>(severely compressed)</small></td>
+      <td class="cell-warn">⚠️ ~9–11% <small>(expanding)</small></td>
+      <td class="cell-warn">⚠️ ~10.8% <small>(FY2025)</small></td>
+      <td class="cell-warn">⚠️ ~8% <small>(recovering)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP vs Non-GAAP Gap (pts)</td>
+      <td class="cell-good">✅ ~1–2 pts <small>(minimal adjustments)</small></td>
+      <td class="cell-good">✅ ~1–2 pts <small>(minimal)</small></td>
+      <td class="cell-warn">⚠️ ~3–5 pts <small>(restructuring charges)</small></td>
+      <td class="cell-good">✅ ~2–3 pts</td>
+      <td class="cell-bad">❌ ~3–5 pts <small>(Project Fuel restructuring, Dockers wind-down)</small></td>
+      <td class="cell-warn">⚠️ ~3–5 pts <small>(Yeezy resolution, restructuring)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E</td>
+      <td class="cell-trophy">🏆 ~12.9x <small>(historically cheap)</small></td>
+      <td class="cell-trophy">🏆 ~16–17x</td>
+      <td class="cell-warn">⚠️ ~25–27x <small>(depressed earnings base)</small></td>
+      <td class="cell-bad">❌ ~40–45x <small>(growth premium)</small></td>
+      <td class="cell-good">✅ ~14–16x</td>
+      <td class="cell-good">✅ ~20–26x</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio</td>
+      <td class="cell-warn">⚠️ 1.89 <small>(fair; growth slowing)</small></td>
+      <td class="cell-warn">⚠️ ~2.0–2.5 <small>(slow growth)</small></td>
+      <td class="cell-bad">❌ N/M <small>(negative growth EPS)</small></td>
+      <td class="cell-good">✅ ~1.2–1.5 <small>(high growth justifies)</small></td>
+      <td class="cell-good">✅ ~1.5–2.0</td>
+      <td class="cell-warn">⚠️ ~2.0–2.5</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity %</td>
+      <td class="cell-trophy">🏆 Net Cash <small>(~$9M net cash)</small></td>
+      <td class="cell-trophy">🏆 Net Cash <small>($1.74B net cash)</small></td>
+      <td class="cell-bad">❌ Net Debt <small>($3.1B net debt, D/E 0.79x)</small></td>
+      <td class="cell-good">✅ Net Cash <small>($674M net cash)</small></td>
+      <td class="cell-warn">⚠️ Modest net debt <small>(D/E ~0.5–0.6x)</small></td>
+      <td class="cell-bad">❌ Net Debt <small>($3.9–4.4B net debt, D/E 0.89–0.91x)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td class="cell-good">✅ ~5.6% <small>(TTM; improving)</small></td>
+      <td class="cell-trophy">🏆 ~6–7% <small>(low CapEx model)</small></td>
+      <td class="cell-warn">⚠️ ~2–3% <small>(compressed)</small></td>
+      <td class="cell-warn">⚠️ ~1–2% <small>(reinvestment phase)</small></td>
+      <td class="cell-warn">⚠️ ~3–4% <small>(improving)</small></td>
+      <td class="cell-warn">⚠️ ~1–2% <small>(low on USD basis)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC % Revenue</td>
+      <td class="cell-trophy">🏆 ~0.8–0.9% <small>(low; ~$90M on $11B rev)</small></td>
+      <td class="cell-trophy">🏆 ~1.0% <small>(low)</small></td>
+      <td class="cell-warn">⚠️ ~2–3% <small>(elevated on shrinking rev)</small></td>
+      <td class="cell-warn">⚠️ ~2–3% <small>(growth-stage company)</small></td>
+      <td class="cell-good">✅ ~1–2%</td>
+      <td class="cell-good">✅ ~1–2%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Quality</td>
+      <td class="cell-warn">⚠️ Deteriorating <small>(OpCF −29.5% in FY25; inventory bloat)</small></td>
+      <td class="cell-trophy">🏆 High <small>(EV/FCF ~14.7x; low CapEx)</small></td>
+      <td class="cell-bad">❌ Weak <small>(EV/FCF 65x; elevated working capital)</small></td>
+      <td class="cell-warn">⚠️ Improving <small>(EV/FCF ~30x; scaling)</small></td>
+      <td class="cell-good">✅ Adequate <small>(FCF $308M adj.)</small></td>
+      <td class="cell-bad">❌ Weak <small>(EV/FCF 70x+ on weak FCF)</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">Buyback Efficiency</td>
+      <td class="cell-warn">⚠️ Active but dilutive value? <small>$1.2B repurchased in FY25 at avg ~$240; stock now ~$155</small></td>
+      <td class="cell-trophy">🏆 Excellent <small>(buybacks at value; net cash fortress)</small></td>
+      <td class="cell-bad">❌ Poor <small>(buybacks during peak; now halted)</small></td>
+      <td class="cell-good">✅ N/A — no buybacks <small>(growth reinvestment)</small></td>
+      <td class="cell-good">✅ Improving <small>($150M buybacks + dividend growth)</small></td>
+      <td class="cell-warn">⚠️ Resuming <small>(post-Yeezy recovery)</small></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="note">
+Sources: StockAnalysis.com (LULU, DECK, NKE, ONON statistics pages); lululemon IR Press Release Mar 27, 2025 &amp; Mar 17, 2026; Levi Strauss IR (FY2025 Q4 press release, Jan 28, 2026); StockTitan LULU FY2026 filing summary; CNBC LULU quote page (market data); MacroTrends revenue/operating margin; 247WallSt LULU post-earnings analysis (Mar 18, 2026). Adidas data from StockAnalysis BST:ADS1 &amp; FRA:ADS statistics. ONON from StockAnalysis + GuruFocus ROIC. DECK from StockAnalysis statistics. NKE from StockAnalysis statistics. PEG estimates derived from forward P/E and consensus EPS growth rates. GAAP vs Non-GAAP gap estimated from company-reported reconciliation tables. Note: adidas uses EUR reporting; USD conversions approximate.
+</div>
+
+<!-- ③ DCF TABLE 2 MODE B -->
+<h2>③ DCF Analyst — Table 2 Mode B</h2>
+
+<div class="card management">
+  <h4 class="teal">⚠ FCF Volatility Flag — HIGH</h4>
+  <p>FY2022 FCF dropped <strong>−67%</strong> vs FY2021 (CapEx surge). FY2023 FCF surged <strong>+401%</strong> vs FY2022. FY2025 FCF declined approximately <strong>−27% to −41%</strong> vs FY2024 (operating cash flow fell −29.5%; inventory bloat $1.7B, up 18%). Both the FY2022 and FY2025 moves exceed the 25% volatility threshold. The DCF base case uses TTM FCF of approximately <strong>$1.17B</strong> (most recent trailing figure per FinanceCharts/Yahoo Finance) as the anchor. Sector classification: <strong>FMCG/Retail Apparel</strong> — growth cap applied at 8% for years 6–10.</p>
+</div>
+
+<div class="dcf-inputs">
+  <strong>DCF Model Assumptions — lululemon (LULU)</strong><br>
+  Base FCF (TTM anchor): <strong>$1,168M</strong> (Yahoo Finance / FinanceCharts, period ended ~Aug 2025)<br>
+  Shares Outstanding: <strong>~116M</strong> (CNBC / StockAnalysis)<br>
+  Current Price: <strong>~$155</strong> (as of report date)<br>
+  FCF Margin assumption: <strong>Flat at TTM (~10.5% of rev)</strong><br>
+  Terminal Growth Rate (g): <strong>3.0%</strong><br>
+  FCF = <strong>85% of NOPAT</strong> (as instructed)<br>
+  Sector Cap: <strong>FMCG/Apparel Retail</strong> → Y1–5 growth capped per scenario; Y6–10 max 8%; terminal 3%<br>
+  Discount Rates tested: <strong>8%, 10%, 12%</strong><br>
+  Scenarios: Bear (NA decline ongoing, margin erosion) | Base-Low (slow recovery) | Base (management guidance + international) | Bull (US recovery + intl) | Max Cap (8% growth Y6–10 sector ceiling)<br>
+  Net Cash added: <strong>+$9M</strong> (effectively nil; excluded from per-share for materiality)<br>
+  FY2026 guidance: Revenue $11.35B–$11.50B; EPS $12.10–$12.30 (−8% YoY); Operating margin −250bps<br>
+  <em>⚑ Tariff headwind: $380M gross in FY2026 with ~$160M offsets; net ~$220M drag</em>
+</div>
+
+<div class="table-wrap">
+<table class="dcf-table">
+  <thead>
+    <tr>
+      <th class="row-head">Discount Rate</th>
+      <th>🐻 Bear<br><small>Y1-5: −2% to +3%<br>Y6-10: 1%</small></th>
+      <th>📉 Base-Low<br><small>Y1-5: 3% to 5%<br>Y6-10: 4%</small></th>
+      <th>📊 Base<br><small>Y1-5: 5% to 7%<br>Y6-10: 6%</small></th>
+      <th>📈 Bull<br><small>Y1-5: 8% to 10%<br>Y6-10: 8% (cap)</small></th>
+      <th>🚀 Max Cap<br><small>Y1-5: 10% to 12%<br>Y6-10: 8% (cap)</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">r = 8%</td>
+      <td class="dcf-red">$94<br>🔴 −39% vs $155</td>
+      <td class="dcf-red">$131<br>🔴 −15% vs $155</td>
+      <td class="dcf-yellow">$163<br>🟡 +5% vs $155</td>
+      <td class="dcf-green">$205<br>🟢 +32% vs $155</td>
+      <td class="dcf-green">$230<br>🟢 +48% vs $155</td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 10%</td>
+      <td class="dcf-red">$76<br>🔴 −51% vs $155</td>
+      <td class="dcf-red">$109<br>🔴 −30% vs $155</td>
+      <td class="dcf-yellow">$138<br>🟡 −11% vs $155</td>
+      <td class="dcf-yellow">$173<br>🟡 +12% vs $155</td>
+      <td class="dcf-green">$194<br>🟢 +25% vs $155</td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 12%</td>
+      <td class="dcf-red">$63<br>🔴 −59% vs $155</td>
+      <td class="dcf-red">$91<br>🔴 −41% vs $155</td>
+      <td class="dcf-red">$116<br>🔴 −25% vs $155</td>
+      <td class="dcf-yellow">$147<br>🟡 −5% vs $155</td>
+      <td class="dcf-yellow">$163<br>🟡 +5% vs $155</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="note">
+Traffic light key: 🟢 DCF intrinsic value &gt;10% above current price | 🟡 Within ±10% of current price | 🔴 DCF intrinsic value &gt;10% below current price. | FCF volatility warning applies — 3 of 5 prior years had FCF moves &gt;25%. All values are whole-number rounded. Sector cap applied per FMCG/Apparel Retail rules (Y6–10 max 8%). Bear scenario reflects FY2026 guidance + continued NA decline + no US recovery. Base scenario reflects management guidance recovery in H2 2026 + ~20% China growth. Bull reflects full product reset success, US comps return to positive territory, 36% intl growth sustaining. Terminal g = 3%. | Sources: Yahoo Finance cash flow (FCF anchor), CNBC shares outstanding, lululemon IR FY2026 guidance (Mar 17, 2026), TipRanks earnings call summary, 247WallSt DCF context.
+</div>
+
+<!-- ④ MANAGEMENT COMMENTARY -->
+<h2>④ Management Commentary</h2>
+
+<div class="card management">
+  <h4 class="teal">Q4 FY2025 Earnings Call — March 17, 2026 | Tone: Cautiously Constructive with Material Headwinds</h4>
+  <p><strong>Leadership:</strong> Interim Co-CEO &amp; CFO Meghan Frank and Interim Co-CEO, President &amp; Chief Commercial Officer André Maestrini led the call. The permanent CEO search is ongoing — a significant governance overhang.</p>
+  <ul>
+    <li><strong>Meghan Frank (CFO):</strong> Stated the company is focused on improving full-price sales, particularly in North America, while acknowledging $275M in gross tariff costs in FY2025 and projecting $380M in FY2026. Guided FY2026 revenue of $11.35B–$11.50B (+2% to +4%) and EPS of $12.10–$12.30 (vs. $13.26 in FY2025 — a ~8% decline).</li>
+    <li><strong>André Maestrini (Co-CEO):</strong> Cited "encouraging early responses" to new product lines including Unrestricted Power and ShowZero, and highlighted new-style penetration reaching ~35% in North America vs. 23% in FY2025.</li>
+    <li><strong>International Strength:</strong> China Mainland revenue +28% in Q4 with comparable sales +26%. Full-year international revenue +22%. Management guided China +20% for full FY2026 and +25–30% in Q1.</li>
+    <li><strong>North America Weakness:</strong> US revenue declined 1% in Q4; Americas comps −2%. Management guided North America down 1–3% for FY2026 with expected recovery in H2. <span class="badge badge-red">Red Flag Language</span></li>
+    <li><strong>Action Plan:</strong> SKU reduction, inventory rebalancing, increased new-style penetration, AI-driven automation, supply chain efficiencies targeting $160M tariff offsets.</li>
+    <li><strong>Capital Return:</strong> $1.2B in buybacks during FY2025 (~5.0M shares); $1.2B authorization remaining. No dividend.</li>
+  </ul>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Analyst Reaction &amp; Consensus — Post Q4 FY2025 (Mar 17–18, 2026)</h4>
+  <ul>
+    <li><strong>Stock Move:</strong> Stock fell sharply after earnings on disappointing FY2026 guidance. LULU is down approximately <strong>−51.3% over the prior 52 weeks</strong> (52-week high $340.25, low $143.96 per Robinhood). The stock was at ~$155 at time of this report.</li>
+    <li><strong>Analyst Targets Cut:</strong> Citi lowered to $185 from $210 (Mar 20, 2026). UBS cut to $176 from $189. Telsey Advisory cut to $175 from $215. BNP Paribas cut to $170 from $206. Wells Fargo remained cautious on new product rescue thesis.</li>
+    <li><strong>Consensus Rating:</strong> 25 analysts — average "Hold." 12-month consensus target ~$190 (StockAnalysis, Apr 2026), implying ~+24% upside from $155.</li>
+    <li><strong>Top Analyst Concerns:</strong> (1) Structurally impaired US brand / share loss to Alo Yoga &amp; Vuori; (2) Margin compression from tariffs + markdowns not transient; (3) Leadership vacuum — no permanent CEO, proxy fight with founder Chip Wilson ongoing; (4) Inventory up 18% to $1.7B — excess supply risk; (5) FY2026 EPS guidance $12.10–$12.30 = 2nd consecutive year of EPS contraction, unprecedented since IPO.</li>
+    <li><strong>Governance Risk:</strong> Chip Wilson escalated proxy fight nominating 3 directors on Mar 17, 2026. Chip Bergh (ex-Levi CEO) added to board as defensive move. <span class="badge badge-red">Proxy Fight Active</span></li>
+  </ul>
+</div>
+
+<!-- ⑤ RED FLAGS -->
+<h2>⑤ Red Flags</h2>
+
+<div class="card red-flag">
+  <h4 class="red">🚨 Red Flag #1 — Margins Compressing</h4>
+  <p><strong>Status: CONFIRMED — ACCELERATING</strong></p>
+  <p>Gross margin fell from 59.2% (FY2024) to ~58.4% (FY2025 full year), with Q4 FY2025 crashing to <strong>54.9%</strong> — a staggering 550 basis-point YoY decline in a single quarter. This is an <strong class="anomaly">anomaly: 550bps single-quarter gross margin drop</strong>. Drivers: $275M gross tariff cost in FY2025, elevated markdowns (product mix failures including "Get Low" leggings and Breezethrough), and $1.7B inventory overhang (up 18% YoY, triple the revenue growth rate). FY2026 guidance projects an additional ~120bps of gross margin decline for the full year, with Q1 guided at −380bps. Operating margin guided down ~250bps for full FY2026. This is the clearest and most acute red flag in the LULU story as of April 2026.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚨 Red Flag #2 — Volume / Comparable Sales Declining</h4>
+  <p><strong>Status: CONFIRMED — Americas Segment</strong></p>
+  <p>Full-year FY2025 comparable sales grew only +2% (excl. 53rd week), with Americas comparable sales down −1%. Q4 FY2025 North America revenue was flat on constant currency, with US comparable sales down −2%. Management explicitly guided North America down 1–3% for all of FY2026, with the US expected to remain negative for "most of the year." Alo Yoga and Vuori are actively taking share from lululemon's core younger/affluent US customer. China Mainland (+26% comps in Q4) and international (+17% revenue in Q4) partially offset, but cannot fully compensate at current relative scales. US is still ~65% of e-commerce revenue base.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚨 Red Flag #3 — FCF Volatile</h4>
+  <p><strong>Status: CONFIRMED — Recurring Pattern</strong></p>
+  <p>FCF has oscillated violently over 5 years: $995M → $328M (−67%) → $1,644M (+401%) → $1,583M (−4%) → ~$922M–$1,168M (−27% to −41% depending on period). Operating cash flow fell ~29.5% in FY2025 despite revenue growing 5%, driven by a $1.7B inventory build (working capital consumption). CapEx as a percent of operating cash flow rose to ~39% in FY2025 from ~30% in FY2024, tightening the FCF conversion ratio. The EV/FCF of ~19.9x (StockAnalysis) appears reasonable but is based on elevated prior-year FCF; TTM FCF trends significantly lower as confirmed by StockTitan FY2026 figures (~$922M).</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚨 Red Flag #4 — CapEx &gt;70% of OpCF?</h4>
+  <p><strong>Status: WATCH — Near Threshold in FY2022</strong></p>
+  <p>In FY2022, CapEx reached approximately <strong>66% of operating cash flow</strong> — just below the 70% red flag threshold. While current-year ratios (~30–39%) are well below the threshold, the trend in FY2025 is concerning: OpCF fell ~29.5% while CapEx guidance for FY2026 is $725–$745M (~6% of revenue), suggesting CapEx as % of OpCF could approach 40–45% in FY2026 if operating cash flow continues to decline. FY2026 CapEx guidance of $725–745M (TipRanks earnings call) represents an increase from FY2025's ~$744M on potentially lower OpCF. This metric requires active monitoring. Not yet a confirmed breach.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚨 Red Flag #5 — Debt Growing in Downturn?</h4>
+  <p><strong>Status: NOT PRESENT — Balance Sheet Fortress</strong></p>
+  <p>lululemon carries virtually zero net debt. As of latest filings, the company holds approximately $1.81B in cash with ~$1.80B in total debt (primarily operating lease obligations), leaving a near-neutral net cash position of ~$9M (StockAnalysis). Debt/Equity ratio is 0.36x, modest. No revolving credit borrowings as of Q4 FY2025. The company has ~$600M in revolver capacity available. Despite the earnings deterioration, the balance sheet remains clean. This is a meaningful structural advantage vs. Nike (−$3.1B net debt) and adidas (−$3.9B–$4.4B net debt). The risk here remains low — cash generation would need to deteriorate significantly further before the balance sheet becomes a concern.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚨 Red Flag #6 — Management Using Uncertainty / Headwinds Language</h4>
+  <p><strong>Status: CONFIRMED</strong></p>
+  <p>Peter Lynch's classic warning sign: management citing "macro uncertainties," "headwinds," and "dynamic environment" as explanations for underperformance. In the Q4 FY2025 call, Interim CFO Meghan Frank explicitly stated the company is "remaining agile as we navigate ongoing macro uncertainties." CEO Calvin McDonald (departed Jan 31, 2026) had attributed US traffic declines to "economic uncertainty" as early as March 2025. The Q3 FY2024 call also featured cautious holiday planning language citing "shorter holiday shopping season." The pattern of uncertainty-hedging language across multiple quarters, combined with deteriorating fundamentals, meets Lynch's red flag criterion. Additionally, the simultaneous absence of a permanent CEO amplifies this concern — the company lacks a committed long-term voice.</p>
+</div>
+
+<!-- ⑥ INVERT -->
+<h2>⑥ Invert — Charlie Munger Style</h2>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Why This Could Be a Bad Long-Term Investment</h4>
+  <p>The bull case for lululemon rests almost entirely on brand premium and international expansion. Invert this: <strong>what if the premium is eroding, not just pausing?</strong> Alo Yoga and Vuori have no material quality deficit vs. lululemon at lower price points. The company's US comparable sales are already negative, and the core Gen Z/Millennial affluent demographic is fragmented across more brands than ever. The $155 stock price reflects a near-decade low P/E (~12x), but this only looks cheap if EPS recovers. If EPS continues declining — as guided ($12.10–$12.30 in FY2026 vs. $14.64 in FY2024) — the stock is not actually cheap on normalized earnings. A company whose gross margin can fall 550bps in a single quarter on tariffs and markdowns has less pricing power than the premium brand narrative implies. If the product reset fails and NA comps remain negative through FY2027, the stock could face further multiple compression even at current prices.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 What Invalidates the Investment Despite Good Historical Financials</h4>
+  <p>Historical ROIC of 30–45% and gross margins of 57–59% look spectacular. But past returns on capital are not guarantees of future returns. The specific invalidators: <strong>(1) Leadership vacuum</strong> — no permanent CEO as of April 2026 during a critical brand reset. <strong>(2) Proxy fight</strong> — founder Chip Wilson's campaign introduces board instability at exactly the wrong moment, potentially paralyzing strategic decision-making. <strong>(3) Tariff structurally embedded</strong> — the $380M gross tariff impact in FY2026 is not a one-year event; if tariffs persist, the company must either absorb margin permanently or raise prices in a market where competitors have lower cost structures. <strong>(4) US brand health deterioration</strong> — product mis-steps (Breezethrough, "Get Low") and increased markdowns signal the brand's vaunted "innovation flywheel" has stalled. Premium brands that lose product credibility rarely recover quickly.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Assumptions That Must Go Right for the Bull Case</h4>
+  <p>An investor buying LULU today at ~$155 is implicitly betting that ALL of the following happen: <strong>(1)</strong> A new permanent CEO is appointed quickly and executes credibly — the absence of one is a compounding risk every quarter; <strong>(2)</strong> The FY2026 product reset (Unrestricted Power, ShowZero, ThermoZen) resonates strongly enough to return US comparable sales to positive territory in H2 FY2026 as guided; <strong>(3)</strong> Tariff offsets of $160M materialize fully and the $380M gross impact does not worsen under escalating US-China trade policy; <strong>(4)</strong> China Mainland sustains ~20% growth — itself dependent on China consumer confidence and geopolitical stability; <strong>(5)</strong> Inventory of $1.7B (up 18%) is sold through at full price without further markdown activity; <strong>(6)</strong> The proxy fight is resolved without board fragmentation or strategic paralysis. That is a six-variable bet in a deteriorating near-term environment.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Structural Weaknesses Often Overlooked in the Bull Narrative</h4>
+  <p><strong>(1) Single-category concentration risk:</strong> Despite expanding into footwear, bags, and accessories, ~97% of lululemon's revenue remains in apparel/fashion. No Nike-style multi-sport diversification or DECK-style dual-brand portfolio to hedge cyclicality. <strong>(2) Geographic concentration:</strong> ~65% of e-commerce revenue still US-based; international, while growing fast, is still a minority contributor and subject to FX headwinds. <strong>(3) No dividend moat:</strong> With no dividend and buybacks executed at average prices well above the current stock price ($1.2B of FY2025 buybacks at average ~$240 on a stock now at $155), capital return has destroyed value rather than created it. <strong>(4) Premium model vulnerability to recessionary consumer behavior:</strong> At $120–$160 per legging, lululemon is a discretionary luxury that faces asymmetric downside in a consumer spending contraction. CEO McDonald explicitly cited survey data showing consumers spending less due to economic concerns before his departure.</p>
+</div>
+
+<!-- ⑦ GOLDEN TIPS -->
+<h2>⑦ Golden Tips — Lynch Lens</h2>
+
+<div class="card golden">
+  <h4 class="green">💡 Golden Tip #1 — GAAP vs. Non-GAAP: The Studio Lesson</h4>
+  <p>In FY2022 (ended Jan 29, 2023), lululemon reported GAAP operating margin of just <strong>16.4%</strong> — versus an adjusted figure that excluded goodwill impairments, asset write-downs, and restructuring charges from the lululemon Studio (Mirror) debacle. The Studio acquisition for $500M in 2020 destroyed value: it was wound down by early 2024. Investors who used only adjusted/non-GAAP metrics missed the write-down signal entirely. Rule: Always reconcile GAAP vs. non-GAAP line by line. When a company excludes "inventory provisions, goodwill impairments, and restructuring" from its "adjusted" figures for multiple consecutive years, the excluded items are <em>not</em> non-recurring — they are recurring business execution failures. lululemon's adjustments in FY2022 and FY2023 totaled hundreds of millions. On an ongoing basis, LULU's GAAP vs. non-GAAP gap is now minimal (~1–2 pts), but the historical lesson is invaluable.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Golden Tip #2 — FCF vs. Net Income: The Working Capital Tell</h4>
+  <p>In FY2025, lululemon reported growing revenues (+5%) and still-positive net income (~$1.58B TTM per StockAnalysis), yet operating cash flow crashed ~29.5% and FCF fell an estimated 27–41%. How? The answer is in the balance sheet: inventory surged 18% to $1.7B — a $260M+ working capital drain in a single year. Net income is an accounting number; it does not capture the cash tied up in unsold goods. Peter Lynch's golden rule applies directly here: if a retailer's inventory is growing materially faster than its revenue (18% inventory growth vs. 5% revenue growth = 3.6x faster), that is a red flag for future markdown risk and FCF deterioration. Free cash flow told the truth in FY2025 before it was widely appreciated.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Golden Tip #3 — Revenue Up, Margins Down: Decode the Mix Shift</h4>
+  <p>From FY2021 to FY2024, lululemon delivered the ideal Lynch combination: revenue growing while gross margins also expanded (55.9% → 59.2%). But in FY2025, the pattern broke: revenue still grew +5%, yet gross margin declined and operating margin fell ~370bps for the full year (estimated), with Q4 collapsing catastrophically. The culprit was a <em>mix shift</em>: international (lower initial-margin markets) and DTC digital (higher fulfillment cost) grew faster than high-margin Americas in-store, while markdowns diluted ASPs and tariffs raised COGS. Lynch's lesson: revenue growth only creates durable value when it is margin-accretive or at least margin-neutral. When revenue growth requires sacrificing price integrity (via markdowns) or mix deterioration, it actually destroys brand equity — the most dangerous long-run outcome for a premium retailer.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Golden Tip #4 — CapEx Pattern: Reading the Investment Cycle</h4>
+  <p>lululemon's CapEx has risen from $394M (FY2021) to $744M (FY2025) — an 89% increase in 4 years. FY2022's spike (+62% YoY) caused the dramatic FCF collapse to $328M, alarming investors, but it funded real assets (distribution centers, cloud infrastructure) that drove the FY2023 FCF rebound to $1.64B (+401%). The Lynch lesson: a temporary CapEx surge that builds genuine capacity and drives future cash generation is healthy — it is not a permanent impairment. However, watch for the reverse: FY2026 CapEx guidance of $725–$745M comes while operating cash flow is declining, meaning the capital intensity is rising not falling. If the new product investments (ShowZero, ThermoZen) do not regenerate revenue growth, this CapEx cycle will not have the redemptive FY2023 rebound — it will simply compress FCF for longer. Distinguish strategic CapEx (builds a moat) from defensive CapEx (maintains the status quo in a deteriorating business).</p>
+</div>
+
+<footer>
+  <strong>SOURCES &amp; DATA CITATIONS</strong><br>
+  [1] lululemon IR — Q4 &amp; FY2025 Press Release (Mar 17, 2026): corporate.lululemon.com/media/press-releases/2026/03-17-2026<br>
+  [2] lululemon IR — Q4 &amp; FY2024 Press Release (Mar 27, 2025): corporate.lululemon.com/media/press-releases/2025/03-27-2025<br>
+  [3] lululemon IR — Q4 &amp; FY2023 Press Release (Mar 21, 2024): corporate.lululemon.com<br>
+  [4] SEC EDGAR — lululemon 10-K filings (FY2021–FY2024): sec.gov/cgi-bin/browse-edgar (CIK 1397187)<br>
+  [5] StockAnalysis.com — LULU Statistics &amp; Valuation: stockanalysis.com/stocks/lulu/statistics/<br>
+  [6] StockAnalysis.com — DECK Statistics: stockanalysis.com/stocks/deck/statistics/<br>
+  [7] StockAnalysis.com — NKE Statistics: stockanalysis.com/stocks/nke/statistics/<br>
+  [8] StockAnalysis.com — ONON Statistics: stockanalysis.com/stocks/onon/statistics/<br>
+  [9] StockAnalysis.com — adidas (BST:ADS1) Statistics: stockanalysis.com/quote/bst/ADS1/statistics/<br>
+  [10] GuruFocus.com — LULU ROIC: gurufocus.com/term/roic/LULU | ONON ROIC: gurufocus.com/term/roic/ONON<br>
+  [11] MacroTrends — LULU Revenue, Gross Margin, FCF, Op Income (2021–2026): macrotrends.net/stocks/charts/LULU<br>
+  [12] Yahoo Finance — LULU Cash Flow Statement (historical): finance.yahoo.com/quote/LULU/cash-flow/<br>
+  [13] CNBC — LULU quote page (market data, TTM metrics): cnbc.com/quotes/LULU<br>
+  [14] CNBC — LULU Q4 FY2024 earnings coverage (Mar 28, 2025): cnbc.com/2025/03/27/lululemon-lulu-earnings-q4-2024<br>
+  [15] 247WallSt — Post-earnings analysis (Mar 18, 2026): 247wallst.com/investing/2026/03/18/is-the-lululemon-dip-a-buy<br>
+  [16] Motley Fool — LULU Q4 FY2025 Earnings Call Transcript (Mar 18, 2026): fool.com/earnings/call-transcripts/2026/03/18/lululemon-lulu-q4-2025<br>
+  [17] TipRanks — LULU Q4 FY2025 Earnings Call Summary: tipranks.com/stocks/lulu/earnings<br>
+  [18] InsiderFinance — LULU FY2026 Outlook: insiderfinance.io/news/lululemon-earnings-beat-2026-outlook-weak<br>
+  [19] SignalBloom AI — LULU Q4 FY2025 Analysis: signalbloom.ai/news/LULU<br>
+  [20] StockTitan — LULU FY2026 Filing Summary: stocktitan.net/financials/LULU<br>
+  [21] FinanceCharts — LULU FCF &amp; FCF Yield: financecharts.com/stocks/LULU/growth/free-cash-flow<br>
+  [22] SimplyWallSt — LULU Key Metrics (5Y ROIC, CAGR): simplywall.st/stocks/us/consumer-durables/nasdaq-lulu/lululemon-athletica<br>
+  [23] Morningstar — LULU Quote (sales per sq ft, operating margin context): morningstar.com/stocks/xnas/lulu/quote<br>
+  [24] Levi Strauss IR — FY2025 Q4 Press Release (Jan 28, 2026): investors.levistrauss.com<br>
+  [25] Robinhood / TradingView — LULU current price, 52-week range<br>
+  [26] Stock-Analysis-on.net — LULU Profitability Ratios (5Y): stock-analysis-on.net/NASDAQ/Company/lululemon-athletica-inc/Ratios/Profitability<br>
+  [27] HighRadius — Lululemon Cash Flow Analysis: highradius.com/finsider/lululemon-financials/<br>
+  [28] Koalagains.com — DECK Analysis (gross margin, ROIC): koalagains.com/stocks/NYSE/DECK<br>
+  [29] TIKR.com — LULU EPS contraction analysis (Mar 2026): tikr.com/blog/lululemon-fell-19-in-2026<br>
+  [30] MacroTrends SBC — LULU Stock-Based Compensation 2023–2025: macrotrends.net/stocks/charts/LULU/lululemon-athletica-inc/stock-based-compensation<br>
+  <br>
+  <strong>DISCLAIMER:</strong> This report is produced for informational and educational purposes only. It does not constitute investment advice, a recommendation to buy or sell any security, or a solicitation to invest. All financial data is sourced from publicly available sources as cited above and is believed to be accurate as of the report date (April 8, 2026), but no representation is made as to its completeness or accuracy. Past financial performance is not indicative of future results. Investing in equities involves risk, including the possible loss of principal. The analyst holds no position in LULU or any of the securities discussed. Readers should conduct their own due diligence and consult a licensed financial advisor before making investment decisions. DCF valuations are highly sensitive to input assumptions and should not be relied upon as sole basis for investment decisions. All currency figures are in USD unless otherwise noted.
+</footer>
+
+</body>
+</html>
