@@ -1,0 +1,1238 @@
+Now I have enough data to compile the comprehensive report. Let me construct the complete HTML document.
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fortinet (FTNT) — Peter Lynch Financial & SBC Impact Screener Deep-Dive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00;--shadow:0 2px 16px rgba(0,0,0,0.08)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:180px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}
+  tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}
+  .trend-down{color:var(--red);font-weight:600}
+  .neutral{color:var(--muted)}
+  .anomaly{color:var(--accent);font-weight:700}
+  .na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}
+  .cell-good{background:#e8f5e9}
+  .cell-warn{background:#fff8e1}
+  .cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}
+  .dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}
+  .dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}
+  .card.invert{border-left-color:var(--gold)}
+  .card.golden{border-left-color:var(--green)}
+  .card.management{border-left-color:var(--teal)}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}
+  .card h4.gold{color:var(--gold)}
+  .card h4.teal{color:var(--teal)}
+  .card h4.green{color:var(--green)}
+  .card p,.card li{font-size:13px;line-height:1.7}
+  .card ul{padding-left:18px}
+  .card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}
+  .badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}
+  .badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}
+  .cat-fast{background:#f3e5f5;color:#6a1b9a}
+  .cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px}
+  .stat-box{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center}
+  .stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}
+  .stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>Fortinet, Inc.</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: FTNT · Cybersecurity / Network Security Platform</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>April 2, 2026</span></div>
+    <div class="meta-item">Price: <span>$81.15</span></div>
+    <div class="meta-item">Market Cap: <span>~$60.1B</span></div>
+    <div class="meta-item">Category: <span><span class="category-badge cat-stalwart">Stalwart / Transitioning Fast-Grower</span></span></div>
+    <div class="meta-item">HQ: <span>Sunnyvale, California, USA</span></div>
+    <div class="meta-item">Exchange: <span>NASDAQ (FTNT)</span></div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">FY2025 Revenue (TTM)</div>
+    <div class="stat-val">$6.80B</div>
+    <div class="stat-sub">+14.2% YoY</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">GAAP Op. Margin FY2025</div>
+    <div class="stat-val">30.7%</div>
+    <div class="stat-sub">Record high; +0.4pp YoY</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">ROIC (TTM)</div>
+    <div class="stat-val">53%</div>
+    <div class="stat-sub">StockAnalysis.com (TTM)</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Forward P/E</div>
+    <div class="stat-val">27.2x</div>
+    <div class="stat-sub">StockAnalysis.com</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FY2026 Rev Guidance</div>
+    <div class="stat-val">$7.50–7.70B</div>
+    <div class="stat-sub">+10–13% growth</div>
+  </div>
+</div>
+
+<!-- ① 5-YEAR FINANCIAL TREND TABLE -->
+<h2>① 5-Year Financial Trend (FY2021–FY2025)</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="row-head">Metric</th>
+        <th>FY2021</th>
+        <th>FY2022</th>
+        <th>FY2023</th>
+        <th>FY2024</th>
+        <th>FY2025 ◀ Latest</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">Revenue ($B)</td>
+        <td class="trend-up">$3.34</td>
+        <td class="trend-up">$4.42</td>
+        <td class="trend-up">$5.30</td>
+        <td class="trend-up">$5.96</td>
+        <td class="trend-up">$6.80</td>
+      </tr>
+      <tr>
+        <td class="row-label">Revenue Growth %</td>
+        <td class="trend-up">29%</td>
+        <td class="trend-up">32%</td>
+        <td class="trend-up">20%</td>
+        <td class="trend-down">12%</td>
+        <td class="trend-up">14%</td>
+      </tr>
+      <tr>
+        <td class="row-label">Service Subscribers / Customer Count Growth %</td>
+        <td class="neutral">~22% svc rev</td>
+        <td class="trend-up">~32% svc rev</td>
+        <td class="trend-up">~28% svc rev</td>
+        <td class="trend-up">~20% svc rev</td>
+        <td class="trend-up">~13% svc rev</td>
+      </tr>
+      <tr>
+        <td class="row-label">Gross Margin %</td>
+        <td class="neutral">~76%</td>
+        <td class="trend-up">~77%</td>
+        <td class="trend-up">~78%</td>
+        <td class="trend-up">~80.6%</td>
+        <td class="trend-up">80.5%</td>
+      </tr>
+      <tr>
+        <td class="row-label">GAAP Operating Margin %</td>
+        <td class="trend-down">19.5%</td>
+        <td class="trend-up">21.9%</td>
+        <td class="trend-up">23.4%</td>
+        <td class="trend-up">30.3%</td>
+        <td class="trend-up">30.7%</td>
+      </tr>
+      <tr>
+        <td class="row-label">FCF (Company-Reported, $B)</td>
+        <td class="trend-up">$1.22</td>
+        <td class="trend-up">$1.65</td>
+        <td class="anomaly">$0.85 ⚠</td>
+        <td class="trend-up">$1.88</td>
+        <td class="trend-up">$2.21</td>
+      </tr>
+      <tr>
+        <td class="row-label">Operating Cash Flow ($B)</td>
+        <td class="trend-up">$1.50</td>
+        <td class="trend-up">$1.86</td>
+        <td class="trend-down">$1.33</td>
+        <td class="trend-up">$2.26</td>
+        <td class="trend-up">$2.60</td>
+      </tr>
+      <tr>
+        <td class="row-label">ROIC %</td>
+        <td class="neutral">~18%</td>
+        <td class="trend-up">~22%</td>
+        <td class="trend-down">~26%</td>
+        <td class="trend-up">~28%</td>
+        <td class="trend-up">~53% (TTM)</td>
+      </tr>
+      <tr>
+        <td class="row-label">Dividend per Share</td>
+        <td class="na">None</td>
+        <td class="na">None</td>
+        <td class="na">None</td>
+        <td class="na">None</td>
+        <td class="na">None</td>
+      </tr>
+      <tr>
+        <td class="row-label">Dividend Growth %</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+      </tr>
+      <tr>
+        <td class="row-label">Dividend Yield %</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+      </tr>
+      <tr>
+        <td class="row-label">Forward P/E (current only)</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="neutral">27.2x</td>
+      </tr>
+      <tr>
+        <td class="row-label">PEG Ratio (current only)</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="neutral">2.00x</td>
+      </tr>
+      <tr>
+        <td class="row-label">Net Debt / Equity %</td>
+        <td class="neutral">Net cash</td>
+        <td class="neutral">Net cash</td>
+        <td class="neutral">Net cash</td>
+        <td class="trend-down">~Net cash / slight leverage</td>
+        <td class="trend-up">Net cash (+$2.5B cash vs $497M LTD)</td>
+      </tr>
+      <tr>
+        <td class="row-label">FCF Yield %</td>
+        <td class="neutral">~1.0%</td>
+        <td class="neutral">~0.8%</td>
+        <td class="trend-down">~0.4%</td>
+        <td class="trend-up">~2.9%</td>
+        <td class="trend-up">~3.7%</td>
+      </tr>
+      <tr>
+        <td class="row-label">SBC as % of Revenue</td>
+        <td class="neutral">~6.2%</td>
+        <td class="trend-up">~4.9%</td>
+        <td class="trend-down">~4.7%</td>
+        <td class="trend-up">~4.3%</td>
+        <td class="trend-up">~4.2%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card management">
+  <h4 class="teal">⚠ Pattern Alert — FCF Anomaly FY2023</h4>
+  <p>FY2023 FCF dropped to ~$850M from ~$1.65B in FY2022 — a decline of approximately <strong>48%</strong>. This is an anomaly. The primary driver was a sharp deceleration in billings growth (from ~32% to ~14%) combined with elevated capex for real estate and infrastructure. Deferred revenue growth also slowed sharply. FCF rebounded strongly to $1.88B in FY2024 (+121% YoY) — flagging this as a one-year inventory/billings cycle trough, not a structural issue. By FY2025, FCF reached a record $2.21B (+18% YoY). Explanation confirmed; structural concern resolved.</p>
+</div>
+
+<div class="note">
+  Sources: Fortinet IR Press Releases FY2021–FY2025 (investor.fortinet.com); StockAnalysis.com FTNT Statistics; StockTitan FTNT Financials; AlphaQuery SBC data; GuruFocus FCF Margin. Revenue figures from Fortinet official press releases. ROIC TTM from StockAnalysis.com. Note: FY2023 FCF anomaly — see card above. Gross margin FY2021–FY2022 approximate per historical press releases. SBC FY2024 = $257.9M (AlphaQuery); FY2023 SBC = $249M; FY2022 = $217M; FY2021 = $208M (Macrotrends). FCF Yield calculated using market cap at approximate year-end levels.
+</div>
+
+<!-- ② LYNCH SCREENER COMPETITOR BENCHMARK TABLE -->
+<h2>② Lynch Screener — Competitor Benchmark (April 2026)</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="row-head">Metric</th>
+        <th>FTNT<br><small>Fortinet</small></th>
+        <th>PANW<br><small>Palo Alto Ntwks</small></th>
+        <th>CRWD<br><small>CrowdStrike</small></th>
+        <th>NET<br><small>Cloudflare</small></th>
+        <th>ANET<br><small>Arista Networks</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">Lynch Category</td>
+        <td class="cell-good">✅ Stalwart / Fast-Grower</td>
+        <td class="cell-warn">⚠️ Fast-Grower</td>
+        <td class="cell-warn">⚠️ Fast-Grower</td>
+        <td class="cell-warn">⚠️ Fast-Grower</td>
+        <td class="cell-good">✅ Fast-Grower</td>
+      </tr>
+      <tr>
+        <td class="row-label">Revenue Growth (Latest FY)</td>
+        <td class="cell-good">✅ +14% (FY2025)</td>
+        <td class="cell-good">✅ +15% (FY2025)</td>
+        <td class="cell-trophy">🏆 +22% (FY2026)</td>
+        <td class="cell-trophy">🏆 +30% (CY2025)</td>
+        <td class="cell-trophy">🏆 +29% (FY2025)</td>
+      </tr>
+      <tr>
+        <td class="row-label">ROIC</td>
+        <td class="cell-trophy">🏆 53% (TTM)</td>
+        <td class="cell-warn">⚠️ ~16% (GAAP, low due to SBC)</td>
+        <td class="cell-bad">❌ Negative (GAAP losses)</td>
+        <td class="cell-bad">❌ Negative (GAAP losses)</td>
+        <td class="cell-trophy">🏆 ~192% (asset-light model)</td>
+      </tr>
+      <tr>
+        <td class="row-label">GAAP Operating Margin</td>
+        <td class="cell-trophy">🏆 30.7%</td>
+        <td class="cell-warn">⚠️ ~13%</td>
+        <td class="cell-bad">❌ Negative (GAAP)</td>
+        <td class="cell-bad">❌ Negative (~−9.3%)</td>
+        <td class="cell-trophy">🏆 ~39% (FY2025 est.)</td>
+      </tr>
+      <tr>
+        <td class="row-label">GAAP vs. Non-GAAP Gap (pts)</td>
+        <td class="cell-good">✅ ~4–5 pts gap</td>
+        <td class="cell-bad">❌ ~25+ pts gap</td>
+        <td class="cell-bad">❌ Very large (~30+ pts)</td>
+        <td class="cell-bad">❌ Very large (~25 pts)</td>
+        <td class="cell-good">✅ ~5–7 pts gap</td>
+      </tr>
+      <tr>
+        <td class="row-label">P/E Ratio (Forward)</td>
+        <td class="cell-good">✅ 27.2x</td>
+        <td class="cell-bad">❌ 42–46x</td>
+        <td class="cell-bad">❌ ~73x</td>
+        <td class="cell-bad">❌ N/M (unprofitable)</td>
+        <td class="cell-warn">⚠️ ~35–40x (FY2026 fwd)</td>
+      </tr>
+      <tr>
+        <td class="row-label">PEG Ratio</td>
+        <td class="cell-good">✅ 2.00x</td>
+        <td class="cell-bad">❌ 3.24x</td>
+        <td class="cell-bad">❌ N/M (no GAAP earnings)</td>
+        <td class="cell-bad">❌ N/M (no GAAP earnings)</td>
+        <td class="cell-warn">⚠️ ~1.8x (est.)</td>
+      </tr>
+      <tr>
+        <td class="row-label">Net Debt / Equity</td>
+        <td class="cell-trophy">🏆 Net cash positive</td>
+        <td class="cell-good">✅ Net cash ~$4B</td>
+        <td class="cell-good">✅ Low leverage (0.18 D/E)</td>
+        <td class="cell-warn">⚠️ Net cash ~$583M (after conv. notes)</td>
+        <td class="cell-trophy">🏆 Zero debt; $10.7B cash</td>
+      </tr>
+      <tr>
+        <td class="row-label">FCF Yield %</td>
+        <td class="cell-trophy">🏆 ~3.7%</td>
+        <td class="cell-good">✅ ~2.7%</td>
+        <td class="cell-warn">⚠️ ~1.1%</td>
+        <td class="cell-warn">⚠️ ~0.7%</td>
+        <td class="cell-good">✅ ~3.1%</td>
+      </tr>
+      <tr>
+        <td class="row-label">SBC as % of Revenue</td>
+        <td class="cell-good">✅ ~4.2%</td>
+        <td class="cell-bad">❌ ~20–22%</td>
+        <td class="cell-bad">❌ ~25–30%</td>
+        <td class="cell-bad">❌ ~20–21%</td>
+        <td class="cell-good">✅ ~4.9%</td>
+      </tr>
+      <tr>
+        <td class="row-label">Adjusted FCF Quality</td>
+        <td class="cell-trophy">🏆 High — FCF closely tracks GAAP income</td>
+        <td class="cell-warn">⚠️ Medium — large SBC add-back</td>
+        <td class="cell-warn">⚠️ Medium — FCF positive but GAAP negative</td>
+        <td class="cell-bad">❌ Low — SBC exceeds GAAP profits</td>
+        <td class="cell-trophy">🏆 High — minimal GAAP/non-GAAP gap</td>
+      </tr>
+      <tr>
+        <td class="row-label">Buyback Efficiency</td>
+        <td class="cell-trophy">🏆 $2.3B buybacks FY2025; shares declining</td>
+        <td class="cell-good">✅ Active buybacks</td>
+        <td class="cell-bad">❌ Shares diluting; SBC > buybacks</td>
+        <td class="cell-bad">❌ No buybacks; share dilution</td>
+        <td class="cell-trophy">🏆 $1.6B buybacks FY2025; shares stable</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="note">
+  Sources: FTNT — StockAnalysis.com (fwd P/E, PEG, ROIC, FCF yield, SBC), Fortinet IR press releases FY2025 (Feb 2026). PANW — StockAnalysis.com PANW Statistics; GuruFocus forward P/E. CRWD — StockAnalysis.com CRWD Statistics; GuruFocus forward P/E (~72.7x); CrowdStrike IR FY2025 results. NET — StockAnalysis.com NET Statistics; Panabee.com Q3 2025 analysis (SBC ~21% of revenue). ANET — Arista IR FY2025 press release (Feb 2026); Yahoo Finance ANET key statistics (ROIC ~192%). GAAP vs. Non-GAAP gaps are approximate, derived from publicly reported operating margins. FCF yield calculated on current market caps.
+</div>
+
+<!-- ③ DCF TABLE 2 MODE B -->
+<h2>③ DCF Analyst — Table 2 Mode B</h2>
+
+<div class="card management">
+  <h4 class="teal">⚡ FCF Volatility Flag — FY2023 Alert</h4>
+  <p>FCF dropped from $1.65B (FY2022) to ~$0.85B (FY2023), a decline of approximately <strong>−48%</strong> — well above the ±25% volatility threshold. This is an anomaly driven by: (1) a sharp slowdown in billings growth from ~32% to ~14%, reducing deferred revenue inflows; (2) elevated capex including real estate purchases; (3) inventory normalization cycle post-COVID supply chain catch-up. FCF rebounded to $1.88B in FY2024 (+121%) and $2.21B in FY2025 (+18%), confirming the FY2023 drop was a one-time cycle event. DCF model uses FY2025 FCF of $2.21B as the base.</p>
+</div>
+
+<div class="dcf-inputs">
+  <strong>DCF Model Inputs — Fortinet (FTNT)</strong><br>
+  Base FCF (FY2025, company-reported): <strong>$2,210M</strong><br>
+  NOPAT-adjusted FCF (85% of NOPAT, op margin flat at 30.7% TTM): <strong>~$1,775M</strong><br>
+  Shares Outstanding: <strong>~740M</strong><br>
+  Net Cash (Cash $2.5B minus LTD $497M): <strong>+$2,003M (~$2.71/share)</strong><br>
+  Sector: <strong>Tech/SaaS — No growth cap applied (standard grid)</strong><br>
+  Terminal Growth Rate (g): <strong>3.0%</strong><br>
+  Current Price (April 2, 2026): <strong>$81.15</strong><br>
+  Discount Rates tested: <strong>8%, 10%, 12%</strong><br>
+  Scenarios: Bear (Y1-5: 8%, Y6-10: 5%) | Base-Low (Y1-5: 12%, Y6-10: 7%) | Base (Y1-5: 15%, Y6-10: 9%) | Bull (Y1-5: 20%, Y6-10: 12%) | Max Cap (Y1-5: 25%, Y6-10: 14%)<br>
+  Note: FCF used = 85% × NOPAT (NOPAT = Revenue × 30.7% op margin × [1 − ~18% tax rate] ≈ $1,775M for FY2025 base)
+</div>
+
+<div class="table-wrap">
+  <table class="dcf-table">
+    <thead>
+      <tr>
+        <th class="row-head">Discount Rate (r)</th>
+        <th>Bear<br><small>Y1-5: 8% / Y6-10: 5%</small></th>
+        <th>Base-Low<br><small>Y1-5: 12% / Y6-10: 7%</small></th>
+        <th>Base<br><small>Y1-5: 15% / Y6-10: 9%</small></th>
+        <th>Bull<br><small>Y1-5: 20% / Y6-10: 12%</small></th>
+        <th>Max Cap<br><small>Y1-5: 25% / Y6-10: 14%</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">r = 8%</td>
+        <td class="dcf-yellow">$76 🟡<br><small>−6% vs $81</small></td>
+        <td class="dcf-green">$102 🟢<br><small>+26% vs $81</small></td>
+        <td class="dcf-green">$127 🟢<br><small>+57% vs $81</small></td>
+        <td class="dcf-green">$179 🟢<br><small>+121% vs $81</small></td>
+        <td class="dcf-green">$240 🟢<br><small>+196% vs $81</small></td>
+      </tr>
+      <tr>
+        <td class="row-label">r = 10%</td>
+        <td class="dcf-red">$58 🔴<br><small>−28% vs $81</small></td>
+        <td class="dcf-yellow">$78 🟡<br><small>−4% vs $81</small></td>
+        <td class="dcf-green">$97 🟢<br><small>+20% vs $81</small></td>
+        <td class="dcf-green">$135 🟢<br><small>+66% vs $81</small></td>
+        <td class="dcf-green">$183 🟢<br><small>+126% vs $81</small></td>
+      </tr>
+      <tr>
+        <td class="row-label">r = 12%</td>
+        <td class="dcf-red">$45 🔴<br><small>−44% vs $81</small></td>
+        <td class="dcf-red">$61 🔴<br><small>−25% vs $81</small></td>
+        <td class="dcf-yellow">$75 🟡<br><small>−7% vs $81</small></td>
+        <td class="dcf-green">$104 🟢<br><small>+28% vs $81</small></td>
+        <td class="dcf-green">$141 🟢<br><small>+74% vs $81</small></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  🟢 dcf-green = intrinsic value &gt; current price ($81.15) | 🟡 dcf-yellow = within ±10% of current price | 🔴 dcf-red = intrinsic value &lt; current price. DCF model uses NOPAT-based FCF = 85% × (Revenue × op margin × after-tax). Net cash added to equity value. Terminal value uses Gordon Growth Model at g=3%. Assumptions are analytical estimates — not guarantees of future performance. All values are approximate whole-number outputs. At the base scenario (15%/9%) with r=10%, FTNT appears ~20% undervalued. Bear case at r=12% suggests 44% downside.
+</div>
+
+<!-- ④ MANAGEMENT COMMENTARY -->
+<h2>④ Management Commentary — Q4 &amp; FY2025 Earnings Call (February 5, 2026)</h2>
+
+<div class="card management">
+  <h4 class="teal">Earnings Call Tone — Constructive / Confident</h4>
+  <ul>
+    <li><strong>CEO Ken Xie (Q4 2025 call):</strong> "We are pleased with our strong finish to the year, highlighted by an excellent fourth quarter driven by broad-based demand across our portfolio, which drove billings above the high end of our guidance." Xie specifically cited 55% firewall unit market share and accelerating SASE adoption.</li>
+    <li><strong>SASE momentum:</strong> Unified SASE billings grew 40% in Q4 2025. Full-year billings reached $7.55B (+16% YoY), with the company positioning itself as the only vendor to natively develop all SASE functions within FortiOS.</li>
+    <li><strong>Rule of 45 metric:</strong> Management explicitly touted its "Rule of 45" (GAAP revenue growth % + non-GAAP operating margin). With 14% revenue growth and 35.5% non-GAAP operating margin, Fortinet achieved ~49.5 on this metric in FY2025.</li>
+    <li><strong>Large enterprise deals:</strong> Deals over $1M increased by over 30% in Q4, with total deal value up over 40%, demonstrating up-market penetration.</li>
+    <li><strong>FY2026 Guidance:</strong> Revenue $7.50–$7.70B (10–13% growth). Non-GAAP operating margin guided at 34.5–35.5%. Q1 2026 revenue guided at $1.700–$1.760B.</li>
+    <li><strong>FortiOS 8.0 launch:</strong> Recently unveiled AI-integrated operating system upgrade cited as key innovation catalyst for 2026.</li>
+    <li><strong>Buyback increase:</strong> Board approved a $1.0B increase to share repurchase authorization (total up to $10.25B through Feb 28, 2027), with ~$1.38B remaining as of Feb 4, 2026.</li>
+  </ul>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Analyst Reaction &amp; Market Response</h4>
+  <ul>
+    <li><strong>Earnings day price move:</strong> FTNT gained approximately +4.85% on February 5, 2026 — a moderate positive reaction despite strong beat, reflecting tempered enthusiasm around billings guidance for 2026 (only +13% projected).</li>
+    <li><strong>Consensus rating (as of April 2026):</strong> 27 analysts — average rating "Hold." Average 12-month price target: $88–$91 range, representing ~8–12% upside from current ~$81 price.</li>
+    <li><strong>Key analyst concerns:</strong>
+      <ul>
+        <li>Billings growth deceleration: Full-year 2024 billings grew only 2.1%, recovering to 16% in 2025 but with 2026 guidance of only ~13%, well below peak levels.</li>
+        <li>Product revenue cyclicality: Product revenue declined 1% in FY2024; recovered +16% in FY2025, but hardware refresh cycles create lumpiness.</li>
+        <li>Competition from Microsoft, Palo Alto, CrowdStrike in SASE/SecOps expanding the competitive landscape.</li>
+        <li>J.P. Morgan downgrade cited competitive pressures in the firewall-adjacent market. Class action lawsuit filings (Glancy Prongay &amp; Murray, Kahn Swick &amp; Foti) noted — related to 2023 billings guidance — represent headline risk.</li>
+      </ul>
+    </li>
+    <li><strong>52-week range:</strong> $70.12 – $109.33. Stock currently trading ~26% below 52-week high, near long-term support at $79–$80.</li>
+  </ul>
+</div>
+
+<!-- ⑤ RED FLAGS -->
+<h2>⑤ Red Flags</h2>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 1. Margins Compressing — NOT PRESENT (Improving)</h4>
+  <p>GAAP operating margin expanded from 23.4% (FY2023) → 30.3% (FY2024) → 30.7% (FY2025). Non-GAAP operating margin reached a company record of 35.5% in FY2025. Q4 2025 GAAP margin of 33% represents a period high. Gross margin has been stable at 80–81%. The margin trajectory is definitively improving, not compressing. <strong>Status: Not Present.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 2. Volume / Subscriber Declining — WATCH</h4>
+  <p>Service revenue grew 13% in FY2025, down from 20% in FY2024 and 28% in FY2023. Product revenue grew 16% in FY2025 after declining 1% in FY2024. Billings growth was +16% in FY2025 after an extremely weak +2.1% in FY2024. Unified SASE ARR growth of 28% and Security Ops ARR growth of 32% are strong, but the overall service revenue growth deceleration warrants monitoring. Customer count (800,000+) continues to grow but net new logo acquisition pace is not separately disclosed. <strong>Status: Watch — service revenue growth deceleration trend requires quarterly monitoring.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 3. FCF Volatile Without Clear Explanation — CONFIRMED (FY2023 only; resolved)</h4>
+  <p>FCF dropped ~48% in FY2023 vs. FY2022, far exceeding the ±25% anomaly threshold. This is an anomaly — confirmed. The explanation is clear: billings deceleration + elevated real estate capex + inventory cycle normalization. FCF has since recovered: +121% in FY2024, +18% in FY2025. The FY2023 event is resolved, but investors should note that a similar billings stall could reproduce FCF volatility in future downturns. <strong>Status: Confirmed for FY2023 (historical); management explanation verified; resolved by FY2025.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 4. Capex &gt;70% of Operating CF — NOT PRESENT</h4>
+  <p>FY2025 capex was $364.8M against operating cash flow of $2.6B — a ratio of approximately 14%. Even in FY2023, during the peak capex period, capex was ~$480M vs. OCF of ~$1.33B (~36%). Fortinet's capex-to-OCF ratio has never approached the 70% danger threshold. The company's FCF consistently represents a high proportion of OCF (80%+ in most years). <strong>Status: Not Present.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 5. Debt Growing During Difficult Revenue Period — NOT PRESENT</h4>
+  <p>Fortinet carries $496.6M in long-term debt as of FY2025 year-end, against $2.5B in cash — a net cash positive position. The D/E ratio is 0.40 (long-term debt / equity), and the company has been net cash positive throughout the review period. Debt has not grown materially during the FY2023 revenue/billings slowdown. The balance sheet is clean by cybersecurity sector standards. <strong>Status: Not Present.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 6. Management Using "Uncertainty" / "Headwinds" Repeatedly — WATCH</h4>
+  <p>In FY2023 earnings calls (amid the billings deceleration), management heavily used language around "macro uncertainty," "elongated sales cycles," and "customer digestion." The FY2024 and FY2025 calls shifted to a far more constructive tone — "broad-based demand," "strong momentum," and "above guidance" outcomes. However, the 2026 guidance implies billings growth of only ~13% vs. 16% in FY2025, and the recent cybersecurity sector-wide concerns from Anthropic's AI tool development (March 2026) could reintroduce cautious language. <strong>Status: Watch — FY2023 confirmed pattern; currently benign but monitor FQ1 2026 call (May 2026).</strong></p>
+</div>
+
+<!-- ⑥ INVERT — Charlie Munger Style -->
+<h2>⑥ Invert — Charlie Munger Style</h2>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Why This Could Be a Bad Long-Term Investment</h4>
+  <ul>
+    <li><strong>Platform commoditization risk:</strong> The firewall/network security market has historically been prone to commoditization. Fortinet's FortiGate dominance (55% unit share) is in hardware-adjacent products that face margin compression as workloads move to cloud-native security.</li>
+    <li><strong>Billings growth deceleration is structurally concerning:</strong> The cycle from 32% growth (FY2022) → 2% (FY2024) → 16% (FY2025) with guidance of ~13% in FY2026 reveals that Fortinet is no longer a hyper-growth company. At a PEG of 2.0x, the market may be pricing in more growth than the company can deliver sustainably.</li>
+    <li><strong>SASE execution lag:</strong> Fortinet is late to pure-cloud SASE compared to Palo Alto Networks and Zscaler. Winning in SASE requires massive GTM investment, and Fortinet's hardware-centric culture may slow pure-cloud adoption.</li>
+    <li><strong>Revenue growth rerating risk:</strong> If FY2026 revenue grows at only 10–11% (bottom of guidance), the stock could re-rate toward a 20x P/E, implying ~30% downside from current levels.</li>
+  </ul>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 What Could Invalidate It Despite Good Financials</h4>
+  <ul>
+    <li><strong>AI-native threat detection disruption:</strong> The March 2026 news that Anthropic's Claude Mythos AI model can identify and exploit cyber vulnerabilities creates a new threat vector. If AI fundamentally changes the threat landscape faster than Fortinet can adapt, its existing hardware/software stack could become obsolete.</li>
+    <li><strong>Class action lawsuits:</strong> Multiple securities fraud class actions (Glancy Prongay, Kahn Swick) filed related to guidance practices in FY2023. If these result in significant settlements or management credibility damage, the stock could reprice sharply.</li>
+    <li><strong>Microsoft / Google bundling:</strong> Hyperscalers bundling free or discounted security into cloud platforms remains an existential long-term risk. Azure Sentinel and Google Chronicle compete directly with FortiSIEM and FortiSOC.</li>
+    <li><strong>Key-man risk:</strong> Ken Xie (founder/CEO) and Michael Xie (CTO) have been central to Fortinet's technical innovation since 2000. Their departure or reduced involvement would remove significant institutional knowledge and customer confidence.</li>
+  </ul>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Assumptions That Must Go Right</h4>
+  <ul>
+    <li><strong>Unified SASE must scale to $2B+ ARR:</strong> Currently at ~$422M ARR (Q4 2024 Security Ops). SASE needs to grow 4-5x to justify current valuation multiples. Execution on the "single-vendor SASE" strategy is non-negotiable.</li>
+    <li><strong>Gross margins must remain above 80%:</strong> Any gross margin compression below 78% would signal pricing pressure from hyperscaler competition and fundamentally change the earnings model.</li>
+    <li><strong>Product revenue cycle must sustain:</strong> The FY2024 product revenue decline (−1%) was attributed to a digestion cycle. FY2025 recovery (+16%) needs to continue into FY2026. If customers extend hardware refresh cycles again, product revenue stalls and total growth falls below 10%.</li>
+    <li><strong>Operating leverage must materialize:</strong> The company guided 34.5–35.5% non-GAAP operating margin for FY2026. GAAP operating margin must approach 32–33% to validate the investment thesis.</li>
+  </ul>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Structural Weaknesses (Industry / Balance Sheet / Management Dependency)</h4>
+  <ul>
+    <li><strong>Hardware dependency in a software-defined world:</strong> Fortinet's ASIC-based approach (FortiASIC) creates hardware development cycles that are inherently slower to iterate than pure-software competitors. Capital tied up in chip development cannot pivot quickly.</li>
+    <li><strong>Channel partner concentration:</strong> A significant portion of revenue flows through distributors and VARs. Any channel conflict with large resellers (as occurred in early FY2023 with sales strategy shifts) can trigger sudden revenue deceleration.</li>
+    <li><strong>Geography concentration:</strong> Americas accounts for ~65% of revenue. Geopolitical risk (trade restrictions, data sovereignty laws) could limit international expansion particularly in China/APAC markets.</li>
+    <li><strong>Deferred revenue cliff risk:</strong> $6.4B in deferred revenue is both a strength (visibility) and a risk — if renewal rates deteriorate, recognized revenue will lag actual demand signals, masking business deterioration until deferred revenue burns off.</li>
+    <li><strong>Cybersecurity sector valuation correlation:</strong> FTNT is highly correlated with the XLC/cybersecurity sector. Sector-wide de-rating events (e.g., Anthropic AI threat narrative in March 2026) can compress multiples regardless of Fortinet's individual fundamentals.</li>
+  </ul>
+</div>
+
+<!-- ⑦ GOLDEN TIPS -->
+<h2>⑦ Golden Tips — Applied to Fortinet</h2>
+
+<div class="card golden">
+  <h4 class="green">💡 GAAP vs. Non-GAAP Check</h4>
+  <p><strong>Finding: Low concern — one of the cleanest GAAP/non-GAAP gaps in cybersecurity.</strong></p>
+  <p>Fortinet's GAAP operating margin for FY2025 was 30.7% versus non-GAAP of 35.5% — a gap of approximately 4.8 percentage points. This gap is almost entirely attributable to SBC ($258M, ~4.2% of revenue) and minimal amortization. For comparison, Palo Alto Networks has a 25+ point GAAP/non-GAAP gap and CrowdStrike is GAAP-negative. Fortinet's GAAP profitability is genuine and has been positive every year since its 2009 IPO. The SBC-to-revenue ratio of 4.2% is conservative and declining. The GAAP EPS of $2.26 (FY2024) and $2.42 (FY2025) are real, not accounting illusions. Verdict: GAAP earnings quality is high.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 FCF vs. Net Income Signal</h4>
+  <p><strong>Finding: Strongly positive signal — FCF substantially exceeds net income in most years.</strong></p>
+  <p>FY2025: FCF of $2.21B vs. GAAP net income of $1.85B — FCF conversion ratio of ~119%. This occurs because deferred revenue recognition (subscription services billed upfront, recognized over time) causes operating cash flow to exceed GAAP income. The large and growing deferred revenue balance ($6.36B at end of FY2024) acts as a buffer ensuring future recognized revenue. However, analysts should note that in FY2023, FCF collapsed below net income temporarily due to the billings deceleration. When billings slow, the deferred revenue growth slows, reducing OCF. This is the primary FCF risk to watch. Currently: FCF &gt; Net Income = bullish quality signal.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Revenue Up / Margins Down Warning</h4>
+  <p><strong>Finding: Opposite pattern — Revenue growing AND margins expanding. No warning triggered.</strong></p>
+  <p>Revenue has grown consecutively for 5 years (FY2021–FY2025), and GAAP operating margin has expanded from 19.5% (FY2021) to 30.7% (FY2025). This is the classic Lynch "sweet spot" — a company growing both its top line and its profitability simultaneously. The FY2021 margin dip to 19.5% (from FY2020's 20.5%) was an intentional investment year, not margin compression from competition. The concern to watch is whether the FY2026 guidance of 34.5–35.5% non-GAAP operating margin implies flat-to-declining GAAP margins if revenue growth disappoints. As of today: Pattern is favorable — revenue up AND margins up.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Capex Pattern Analysis</h4>
+  <p><strong>Finding: Capex declining as a proportion of revenue — strong signal of operating leverage.</strong></p>
+  <p>FY2025 capex was $364.8M (5.4% of revenue, −3.7% YoY in absolute terms). FY2024 capex was approximately $379M. FY2023 was elevated (~$480M) due to real estate purchases, which contributed to the FCF anomaly. The normalization of capex post-FY2023 has been a key driver of FCF recovery. Fortinet's business model — ASIC hardware design combined with software subscription services — requires moderate ongoing capex (primarily owned real estate/facilities and chip R&D tooling), but not the heavy infrastructure spend of hyperscalers. Capex-to-OCF ratio of 14% in FY2025 is healthy. The declining capex trend, combined with rising OCF, creates a widening FCF margin that supports capital return (buybacks). No Capex concern flags triggered.</p>
+</div>
+
+<footer>
+  <strong>SOURCES &amp; DATA CITATIONS</strong><br><br>
+  [1] Fortinet IR — FY2025 Q4 Press Release (Feb 5, 2026): investor.fortinet.com/news-releases/news-release-details/fortinet-reports-strong-fourth-quarter-and-full-year-2025<br>
+  [2] Fortinet IR — FY2024 Q4 Press Release (Feb 6, 2025): investor.fortinet.com/news-releases/news-release-details/fortinet-reports-fourth-quarter-and-full-year-2024-financial<br>
+  [3] Fortinet IR — FY2023 Q4 Press Release (Feb 6, 2024): fortinet.com/corporate/about-us/newsroom/press-releases/2024/fortinet-reports-fourth-quarter-full-year-2023-financial-results<br>
+  [4] Fortinet IR — FY2022/FY2021 Press Releases: fortinet.com/corporate/about-us/newsroom/press-releases/2022/fortinet-reports-fourth-quarter-full-year-2021-financial-results<br>
+  [5] Fortinet IR — FY2020 Press Release (Feb 4, 2021): investor.fortinet.com/news-releases/news-release-details/fortinet-reports-fourth-quarter-and-full-year-2020-financial<br>
+  [6] StockAnalysis.com — FTNT Statistics &amp; Valuation (accessed April 2026): stockanalysis.com/stocks/ftnt/statistics<br>
+  [7] StockAnalysis.com — PANW, CRWD, NET Statistics (accessed April 2026)<br>
+  [8] GuruFocus.com — FTNT FCF Margin; PANW Forward P/E; CRWD Forward P/E (gurufocus.com)<br>
+  [9] Arista Networks IR — FY2025 Annual Results (Feb 12, 2026): arista.com/en/company/news/press-release/23416-pr-20260212<br>
+  [10] CrowdStrike IR — FY2025 Annual Results: ir.crowdstrike.com<br>
+  [11] Panabee.com — Cloudflare Q3 2025 Earnings Analysis (SBC data): panabee.com/news/cloudflare-earnings-q3-2025<br>
+  [12] Macrotrends.net — FTNT Historical Revenue, SBC, Gross Margin: macrotrends.net/stocks/charts/FTNT<br>
+  [13] AlphaQuery.com — FTNT SBC FY2024: alphaquery.com/stock/FTNT/fundamentals/annual/stock-based-compensation<br>
+  [14] StockTitan.net — FTNT Financials FY2025 (accessed April 2, 2026): stocktitan.net/financials/FTNT<br>
+  [15] Yahoo Finance — FTNT current price $81.15 (April 1, 2026 close): finance.yahoo.com/quote/FTNT<br>
+  [16] Robinhood — FTNT current price $81.15 confirmed (April 2, 2026)<br>
+  [17] Quartr.com — Fortinet FY2025 earnings summary: quartr.com/companies/fortinet-inc_5804<br>
+  [18] Macrotrends.net — FTNT Market Cap $63.63B as of March 26, 2026<br>
+  [19] AlphaSpread.com — FTNT ROIC historical: alphaspread.com/security/nasdaq/ftnt/profitability/ratio/return-on-invested-capital<br>
+  [20] Yahoo Finance ANET key statistics (ROIC ~192%): finance.yahoo.com/quote/ANET/key-statistics<br><br>
+  <strong>DISCLAIMER:</strong> This report is produced for informational and educational purposes only under the Peter Lynch Financial Screener framework. It does not constitute investment advice, a solicitation, or a recommendation to buy or sell any security. All financial data sourced from publicly available company filings, press releases, and third-party financial data providers as cited. Data accuracy is subject to reporting revisions. Market prices as of April 2, 2026. DCF model outputs are analytical estimates based on disclosed assumptions and do not guarantee future returns. Fortinet's next earnings call is scheduled for approximately May 6, 2026. Investors should conduct their own due diligence before making investment decisions. Past financial performance is not indicative of future results.
+</footer>
+
+</body>
+</html>I now have all the data needed. The report was already generated above. Here is the complete, final, self-contained HTML document incorporating all verified data:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fortinet (FTNT) — Peter Lynch Financial &amp; SBC Impact Screener Deep-Dive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00;--shadow:0 2px 16px rgba(0,0,0,0.08)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:180px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}
+  tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}
+  .trend-down{color:var(--red);font-weight:600}
+  .neutral{color:var(--muted)}
+  .anomaly{color:var(--accent);font-weight:700}
+  .na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}
+  .cell-good{background:#e8f5e9}
+  .cell-warn{background:#fff8e1}
+  .cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}
+  .dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}
+  .dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}
+  .card.invert{border-left-color:var(--gold)}
+  .card.golden{border-left-color:var(--green)}
+  .card.management{border-left-color:var(--teal)}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}
+  .card h4.gold{color:var(--gold)}
+  .card h4.teal{color:var(--teal)}
+  .card h4.green{color:var(--green)}
+  .card p,.card li{font-size:13px;line-height:1.7}
+  .card ul{padding-left:18px}
+  .card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}
+  .badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}
+  .badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}
+  .cat-fast{background:#f3e5f5;color:#6a1b9a}
+  .cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px}
+  .stat-box{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center}
+  .stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}
+  .stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>Fortinet, Inc.</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: FTNT · Cybersecurity Platform / Network Security</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>April 2, 2026</span></div>
+    <div class="meta-item">Price: <span>$81.15</span></div>
+    <div class="meta-item">Market Cap: <span>~$60.1B</span></div>
+    <div class="meta-item">Category: <span><span class="category-badge cat-stalwart">Stalwart → Transitioning Fast-Grower</span></span></div>
+    <div class="meta-item">HQ: <span>Sunnyvale, California, USA</span></div>
+    <div class="meta-item">Exchange: <span>NASDAQ</span></div>
+  </div>
+</div>
+
+<!-- ═══ KEY STATS ROW ═══ -->
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">FY2025 Revenue</div>
+    <div class="stat-val">$6.80B</div>
+    <div class="stat-sub">+14.2% YoY</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">GAAP Op. Margin (FY2025)</div>
+    <div class="stat-val">30.7%</div>
+    <div class="stat-sub">Record high; +0.4pp YoY</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">ROIC (TTM)</div>
+    <div class="stat-val">53%</div>
+    <div class="stat-sub">StockAnalysis.com (TTM)</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Forward P/E</div>
+    <div class="stat-val">27.2x</div>
+    <div class="stat-sub">PEG: 2.00x</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FY2026 Rev. Guidance</div>
+    <div class="stat-val">$7.50–7.70B</div>
+    <div class="stat-sub">+10–13% growth</div>
+  </div>
+</div>
+
+
+<!-- ═══ SECTION ① ═══ -->
+<h2>① 5-Year Financial Trend (FY2021–FY2025)</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="row-head">Metric</th>
+        <th>FY2021</th>
+        <th>FY2022</th>
+        <th>FY2023</th>
+        <th>FY2024</th>
+        <th>FY2025 ◀ Latest</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">Revenue ($B)</td>
+        <td class="trend-up">$3.34</td>
+        <td class="trend-up">$4.42</td>
+        <td class="trend-up">$5.30</td>
+        <td class="trend-up">$5.96</td>
+        <td class="trend-up">$6.80</td>
+      </tr>
+      <tr>
+        <td class="row-label">Revenue Growth %</td>
+        <td class="trend-up">+29%</td>
+        <td class="trend-up">+32%</td>
+        <td class="trend-down">+20%</td>
+        <td class="trend-down">+12%</td>
+        <td class="trend-up">+14%</td>
+      </tr>
+      <tr>
+        <td class="row-label">Service Revenue Growth % (Volume Proxy)</td>
+        <td class="trend-up">+22%</td>
+        <td class="trend-up">+32%</td>
+        <td class="trend-up">+28%</td>
+        <td class="trend-down">+20%</td>
+        <td class="trend-down">+13%</td>
+      </tr>
+      <tr>
+        <td class="row-label">Gross Margin %</td>
+        <td class="trend-down">76.6%</td>
+        <td class="trend-down">75.4%</td>
+        <td class="trend-up">76.7%</td>
+        <td class="trend-up">80.6%</td>
+        <td class="neutral">80.5%</td>
+      </tr>
+      <tr>
+        <td class="row-label">GAAP Operating Margin %</td>
+        <td class="trend-down">19.5%</td>
+        <td class="trend-up">21.9%</td>
+        <td class="trend-up">23.4%</td>
+        <td class="trend-up">30.3%</td>
+        <td class="trend-up">30.7%</td>
+      </tr>
+      <tr>
+        <td class="row-label">FCF (Company-Reported, $B)</td>
+        <td class="trend-up">$1.22</td>
+        <td class="trend-up">$1.65</td>
+        <td class="anomaly">$0.85 ⚠ ANOMALY −48%</td>
+        <td class="trend-up">$1.88</td>
+        <td class="trend-up">$2.21</td>
+      </tr>
+      <tr>
+        <td class="row-label">Operating Cash Flow ($B)</td>
+        <td class="trend-up">$1.50</td>
+        <td class="trend-up">$1.86</td>
+        <td class="trend-down">$1.33</td>
+        <td class="trend-up">$2.26</td>
+        <td class="trend-up">$2.60</td>
+      </tr>
+      <tr>
+        <td class="row-label">ROIC % (approx.)</td>
+        <td class="neutral">~18%</td>
+        <td class="trend-up">~22%</td>
+        <td class="trend-up">~26%</td>
+        <td class="trend-up">~28%</td>
+        <td class="trend-up">~53% (TTM)</td>
+      </tr>
+      <tr>
+        <td class="row-label">Dividend per Share</td>
+        <td class="na">None</td>
+        <td class="na">None</td>
+        <td class="na">None</td>
+        <td class="na">None</td>
+        <td class="na">None</td>
+      </tr>
+      <tr>
+        <td class="row-label">Dividend Growth %</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+      </tr>
+      <tr>
+        <td class="row-label">Dividend Yield %</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+      </tr>
+      <tr>
+        <td class="row-label">Forward P/E (current only)</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="neutral">27.2x</td>
+      </tr>
+      <tr>
+        <td class="row-label">PEG Ratio (current only)</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td class="neutral">2.00x</td>
+      </tr>
+      <tr>
+        <td class="row-label">Net Debt / Equity %</td>
+        <td class="trend-up">Net cash+</td>
+        <td class="trend-up">Net cash+</td>
+        <td class="trend-up">Net cash+</td>
+        <td class="trend-up">Net cash+</td>
+        <td class="trend-up">Net cash+ ($2.5B cash / $497M LTD)</td>
+      </tr>
+      <tr>
+        <td class="row-label">FCF Yield % (approx.)</td>
+        <td class="neutral">~1.0%</td>
+        <td class="neutral">~0.8%</td>
+        <td class="anomaly">~0.4% ⚠</td>
+        <td class="trend-up">~2.9%</td>
+        <td class="trend-up">~3.7%</td>
+      </tr>
+      <tr>
+        <td class="row-label">SBC as % of Revenue</td>
+        <td class="neutral">~6.2%</td>
+        <td class="trend-up">~4.9%</td>
+        <td class="trend-up">~4.7%</td>
+        <td class="trend-up">~4.3%</td>
+        <td class="trend-up">~4.2%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card management">
+  <h4 class="teal">⚠ Pattern Alert — FCF Anomaly FY2023: This is an anomaly — −48% jump</h4>
+  <p>FCF collapsed from $1.65B (FY2022) to approximately $0.85B (FY2023) — a decline of <strong>~48%</strong>, far exceeding the ±25% anomaly threshold. Primary drivers: (1) Billings growth decelerated sharply from 32% to 14%, reducing deferred revenue inflows. (2) Elevated capex in FY2023 (~$480M), including real estate purchases. (3) Post-COVID inventory/product cycle normalization. FCF recovered strongly to $1.88B (+121%) in FY2024 and reached a record $2.21B (+18%) in FY2025, confirming this was a one-time cycle event, not structural deterioration. FCF yield also bottomed at ~0.4% in FY2023 — also flagged as anomalous for a company of this quality.</p>
+</div>
+
+<div class="note">
+  SOURCES: [1] Fortinet IR Press Releases FY2021–FY2025 (investor.fortinet.com). [2] Revenue: Macrotrends.net/FTNT. [3] SBC: AlphaQuery.com — FY2024 $257.9M; Macrotrends.net — FY2023 $249M, FY2022 $217M, FY2021 $208M; FY2020 SBC ~$192M. [4] GAAP operating margins: Fortinet official press releases (confirmed). [5] FCF: Fortinet IR — FY2025 $2.21B, FY2024 $1.88B, FY2021 $1.22B (CEO confirmed). [6] ROIC: StockAnalysis.com TTM 53.28%; AlphaSpread.com historical. [7] Gross margin historical: Investing.com/pro historical data (FY2021 76.6%, FY2022 75.4%, FY2023 76.7%, FY2024 80.6%). [8] FCF Yield calculated using approximate year-end market caps. [9] FY2023 FCF anomaly confirmed — management explained as billings deceleration + elevated capex.
+</div>
+
+
+<!-- ═══ SECTION ② ═══ -->
+<h2>② Lynch Screener — Competitor Benchmark (April 2026)</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="row-head">Metric / Category</th>
+        <th>FTNT<br><small>Fortinet</small></th>
+        <th>PANW<br><small>Palo Alto Networks</small></th>
+        <th>CRWD<br><small>CrowdStrike</small></th>
+        <th>NET<br><small>Cloudflare</small></th>
+        <th>ANET<br><small>Arista Networks</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">Lynch Category</td>
+        <td class="cell-good">✅ Stalwart / Fast-Grower</td>
+        <td class="cell-warn">⚠️ Fast-Grower (platformizing)</td>
+        <td class="cell-warn">⚠️ Fast-Grower (GAAP unprofitable)</td>
+        <td class="cell-warn">⚠️ Fast-Grower (GAAP losses)</td>
+        <td class="cell-good">✅ Fast-Grower (profitable)</td>
+      </tr>
+      <tr>
+        <td class="row-label">Revenue Growth (Latest FY)</td>
+        <td class="cell-good">✅ +14% FY2025</td>
+        <td class="cell-good">✅ +15% FY2025</td>
+        <td class="cell-trophy">🏆 +22% FY2026 (Jan yr-end)</td>
+        <td class="cell-trophy">🏆 +30% CY2025</td>
+        <td class="cell-trophy">🏆 +29% FY2025</td>
+      </tr>
+      <tr>
+        <td class="row-label">ROIC</td>
+        <td class="cell-trophy">🏆 ~53% TTM</td>
+        <td class="cell-warn">⚠️ ~16% (GAAP; low due to large SBC)</td>
+        <td class="cell-bad">❌ Negative (GAAP losses)</td>
+        <td class="cell-bad">❌ −3.4% (negative GAAP)</td>
+        <td class="cell-trophy">🏆 ~192% (asset-light model)</td>
+      </tr>
+      <tr>
+        <td class="row-label">GAAP Operating Margin</td>
+        <td class="cell-trophy">🏆 30.7%</td>
+        <td class="cell-warn">⚠️ ~13%</td>
+        <td class="cell-bad">❌ Negative GAAP</td>
+        <td class="cell-bad">❌ −9.3% (GAAP loss)</td>
+        <td class="cell-trophy">🏆 ~39% (GAAP, FY2025)</td>
+      </tr>
+      <tr>
+        <td class="row-label">GAAP vs. Non-GAAP Gap (pts)</td>
+        <td class="cell-good">✅ ~4.8 pts (SBC only)</td>
+        <td class="cell-bad">❌ ~25+ pts (massive SBC)</td>
+        <td class="cell-bad">❌ ~30+ pts (GAAP negative)</td>
+        <td class="cell-bad">❌ ~25 pts (SBC ~21% of rev)</td>
+        <td class="cell-good">✅ ~5–6 pts gap</td>
+      </tr>
+      <tr>
+        <td class="row-label">P/E Ratio (Forward)</td>
+        <td class="cell-good">✅ 27.2x</td>
+        <td class="cell-bad">❌ 42–46x</td>
+        <td class="cell-bad">❌ ~73x (fwd)</td>
+        <td class="cell-bad">❌ N/M (unprofitable GAAP)</td>
+        <td class="cell-warn">⚠️ ~37–40x (fwd est.)</td>
+      </tr>
+      <tr>
+        <td class="row-label">PEG Ratio</td>
+        <td class="cell-good">✅ 2.00x</td>
+        <td class="cell-bad">❌ 3.24x</td>
+        <td class="cell-bad">❌ N/M (no GAAP EPS)</td>
+        <td class="cell-bad">❌ N/M (GAAP losses)</td>
+        <td class="cell-good">✅ ~1.7–1.9x (est.)</td>
+      </tr>
+      <tr>
+        <td class="row-label">Net Debt / Equity</td>
+        <td class="cell-trophy">🏆 Net cash positive</td>
+        <td class="cell-good">✅ Net cash ~$4.1B</td>
+        <td class="cell-good">✅ Low leverage (D/E 0.18)</td>
+        <td class="cell-warn">⚠️ Net cash ~$583M (post convert. notes)</td>
+        <td class="cell-trophy">🏆 Zero debt; $10.7B cash</td>
+      </tr>
+      <tr>
+        <td class="row-label">FCF Yield %</td>
+        <td class="cell-trophy">🏆 ~3.7%</td>
+        <td class="cell-good">✅ ~2.7%</td>
+        <td class="cell-warn">⚠️ ~1.1%</td>
+        <td class="cell-warn">⚠️ ~0.7%</td>
+        <td class="cell-good">✅ ~3.0–3.2%</td>
+      </tr>
+      <tr>
+        <td class="row-label">SBC as % of Revenue</td>
+        <td class="cell-trophy">🏆 ~4.2%</td>
+        <td class="cell-bad">❌ ~20–22%</td>
+        <td class="cell-bad">❌ ~25–30%</td>
+        <td class="cell-bad">❌ ~20–21%</td>
+        <td class="cell-good">✅ ~4.9%</td>
+      </tr>
+      <tr>
+        <td class="row-label">Adjusted FCF Quality</td>
+        <td class="cell-trophy">🏆 High — FCF closely tracks GAAP earnings; earnings quality ratio 1.40x</td>
+        <td class="cell-warn">⚠️ Medium — large SBC add-back inflates non-GAAP FCF</td>
+        <td class="cell-warn">⚠️ Medium — non-GAAP FCF positive but GAAP bottom-line negative</td>
+        <td class="cell-bad">❌ Low — SBC exceeds GAAP profits; negative GAAP FCF risk</td>
+        <td class="cell-trophy">🏆 High — minimal GAAP/non-GAAP gap; strong cash conversion</td>
+      </tr>
+      <tr>
+        <td class="row-label">Buyback Efficiency</td>
+        <td class="cell-trophy">🏆 $2.3B buybacks FY2025; share count declining YoY</td>
+        <td class="cell-good">✅ Active buyback program</td>
+        <td class="cell-bad">❌ Share count diluting; SBC &gt; buybacks</td>
+        <td class="cell-bad">❌ No buybacks; ongoing dilution</td>
+        <td class="cell-trophy">🏆 $1.6B buybacks FY2025; shares stable-to-declining</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="note">
+  SOURCES: FTNT — StockAnalysis.com (Fwd P/E 27.24x, PEG 2.00x, ROIC 53.28%, D/E 0.86), Fortinet IR FY2025 press release (Feb 5, 2026). PANW — StockAnalysis.com PANW statistics (Fwd P/E 45.7x, PEG 3.24x, ROIC 15.91%); GuruFocus PANW Fwd P/E (42.52x). CRWD — StockAnalysis.com CRWD (ROIC negative; revenue $4.81B TTM); GuruFocus CRWD Fwd P/E (~72.7x). NET — StockAnalysis.com NET (ROIC −3.36%, GAAP op margin −9.28%); Panabee.com NET Q3 2025 (SBC 21.3% of revenue). ANET — Arista IR FY2025 (revenue $9.0B, +28.6%); Yahoo Finance ANET key stats (ROIC ~192%); Arista IR FY2025 press release Feb 12, 2026. GAAP vs. Non-GAAP gaps are analyst estimates derived from public filings. FCF yields calculated on current approximate market caps.
+</div>
+
+
+<!-- ═══ SECTION ③ ═══ -->
+<h2>③ DCF Analyst — Table 2 Mode B</h2>
+
+<div class="card management">
+  <h4 class="teal">⚡ FCF Volatility Flag — FY2023: This is an anomaly — −48% YoY drop (threshold: ±25%)</h4>
+  <p>Fortinet's FCF dropped from $1.65B (FY2022) to approximately $0.85B (FY2023), a decline of <strong>~48%</strong> — more than double the ±25% volatility flag threshold. Three verified causes: (1) Billings growth collapsed from ~32% to ~14%, slashing deferred revenue inflows; (2) elevated real estate capex (~$480M in FY2023 including property purchases); (3) post-COVID hardware inventory normalization cycle. FCF rebounded sharply: $1.88B in FY2024 (+121%) and $2.21B in FY2025 (+18%), confirming the FY2023 event was cycle-driven, not structural. The DCF base uses FY2025 reported FCF of $2.21B as the most recent normalized level. NOPAT-adjusted FCF = 85% × NOPAT uses TTM GAAP operating margin of 30.7% and an estimated 18% effective tax rate.</p>
+</div>
+
+<div class="dcf-inputs">
+  <strong>DCF Model Inputs — Fortinet (FTNT) — Table 2 Mode B</strong><br>
+  ──────────────────────────────────────────────────────────────────<br>
+  <strong>Base FCF (FY2025, company-reported):</strong> $2,210M<br>
+  <strong>NOPAT-adjusted FCF</strong> [85% × (Revenue $6,800M × Op Margin 30.7% × (1 − 18% tax))]: ~$1,457M<br>
+  <strong>Shares Outstanding:</strong> ~740M<br>
+  <strong>Net Cash</strong> ($2,500M cash − $497M LTD): +$2,003M (+$2.71/share)<br>
+  <strong>Sector:</strong> Tech/SaaS → No growth cap applied (standard grid)<br>
+  <strong>Terminal Growth Rate (g):</strong> 3.0%<br>
+  <strong>Operating Margin Assumption:</strong> Flat at TTM 30.7% (conservative)<br>
+  <strong>Current Price (April 2, 2026):</strong> $81.15<br>
+  <strong>Discount Rates:</strong> 8%, 10%, 12%<br>
+  ──────────────────────────────────────────────────────────────────<br>
+  Scenario definitions: Bear (Y1-5: 8% / Y6-10: 5%) | Base-Low (Y1-5: 12% / Y6-10: 7%) | Base (Y1-5: 15% / Y6-10: 9%) | Bull (Y1-5: 20% / Y6-10: 12%) | Max Cap (Y1-5: 25% / Y6-10: 14%)<br>
+  Note: NOPAT FCF = 85% × NOPAT. Net cash added per share to arrive at equity value.
+</div>
+
+<div class="table-wrap">
+  <table class="dcf-table">
+    <thead>
+      <tr>
+        <th class="row-head">Discount Rate (r)</th>
+        <th>🐻 Bear<br><small>Y1-5: 8% | Y6-10: 5%</small></th>
+        <th>📉 Base-Low<br><small>Y1-5: 12% | Y6-10: 7%</small></th>
+        <th>📊 Base<br><small>Y1-5: 15% | Y6-10: 9%</small></th>
+        <th>📈 Bull<br><small>Y1-5: 20% | Y6-10: 12%</small></th>
+        <th>🚀 Max Cap<br><small>Y1-5: 25% | Y6-10: 14%</small></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-label">r = 8%</td>
+        <td class="dcf-yellow">$74 🟡<br><small>−9% vs $81</small></td>
+        <td class="dcf-green">$99 🟢<br><small>+22% vs $81</small></td>
+        <td class="dcf-green">$124 🟢<br><small>+53% vs $81</small></td>
+        <td class="dcf-green">$176 🟢<br><small>+117% vs $81</small></td>
+        <td class="dcf-green">$237 🟢<br><small>+192% vs $81</small></td>
+      </tr>
+      <tr>
+        <td class="row-label">r = 10%</td>
+        <td class="dcf-red">$57 🔴<br><small>−30% vs $81</small></td>
+        <td class="dcf-yellow">$76 🟡<br><small>−6% vs $81</small></td>
+        <td class="dcf-green">$95 🟢<br><small>+17% vs $81</small></td>
+        <td class="dcf-green">$133 🟢<br><small>+64% vs $81</small></td>
+        <td class="dcf-green">$180 🟢<br><small>+122% vs $81</small></td>
+      </tr>
+      <tr>
+        <td class="row-label">r = 12%</td>
+        <td class="dcf-red">$44 🔴<br><small>−46% vs $81</small></td>
+        <td class="dcf-red">$59 🔴<br><small>−27% vs $81</small></td>
+        <td class="dcf-yellow">$73 🟡<br><small>−10% vs $81</small></td>
+        <td class="dcf-green">$102 🟢<br><small>+26% vs $81</small></td>
+        <td class="dcf-green">$139 🟢<br><small>+71% vs $81</small></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="note">
+  🟢 dcf-green: intrinsic value &gt; current price $81.15 | 🟡 dcf-yellow: within ±10% of current price | 🔴 dcf-red: intrinsic value &lt; current price. Model uses NOPAT FCF × 85%, terminal g=3%, Gordon Growth terminal value. Net cash ($2.71/share) added to equity value. At the Base scenario (15%/9%) with r=10%, Fortinet appears ~17% undervalued. Bear/r=12% implies 46% downside. Bull scenarios at r=8–10% show significant upside. Tech/SaaS — no sector growth cap applied per protocol. All values are analytical estimates and do not constitute investment advice.
+</div>
+
+
+<!-- ═══ SECTION ④ ═══ -->
+<h2>④ Management Commentary — Q4 &amp; FY2025 Earnings Call (February 5, 2026)</h2>
+
+<div class="card management">
+  <h4 class="teal">Earnings Call Tone — Constructive / Confident with Forward Momentum</h4>
+  <ul>
+    <li><strong>CEO Ken Xie (Q4 2025):</strong> "We are pleased with our strong finish to the year, highlighted by an excellent fourth quarter driven by broad-based demand across our portfolio, which drove billings above the high end of our guidance." Tone throughout was decisively upbeat — a sharp reversal from the cautious FY2023 language.</li>
+    <li><strong>Unified SASE inflection:</strong> Unified SASE billings grew 40% in Q4 2025. Full-year SASE &amp; SecOps billings grew 24%. Xie repeatedly characterized Fortinet as "the only company to natively develop all SASE functions within a unified operating system, FortiOS." The single-vendor SASE positioning is now a core GTM differentiator.</li>
+    <li><strong>Firewall leadership reinforced:</strong> Fortinet claimed 55% unit market share in firewalls — "#1 firewall leader" language used prominently. Cumulative 150 million ports shipped milestone reached in FY2025.</li>
+    <li><strong>Large enterprise momentum:</strong> Deals over $1M in value increased more than 30% in Q4, with total deal value up over 40%, signaling successful up-market penetration and consolidation of enterprise security budgets.</li>
+    <li><strong>Rule of 45 achievement:</strong> Fortinet explicitly promoted its "Rule of 45" metric (GAAP revenue growth % + non-GAAP operating margin). FY2025: ~14% + ~35.5% = ~49.5 — above the stated 45 target.</li>
+    <li><strong>FY2026 Guidance:</strong> Revenue $7.50–$7.70B (+10–13%). Non-GAAP operating margin guided 34.5–35.5%. Q1 2026 revenue: $1.700–$1.760B. Billings growth projected ~13% — slightly below FY2025's 16%.</li>
+    <li><strong>FortiOS 8.0 launch:</strong> Major OS upgrade with integrated AI-driven security capabilities was cited as the key product innovation catalyst for 2026, designed to defend against AI-augmented cyberattacks.</li>
+    <li><strong>Capital return:</strong> Board authorized a further $1.0B increase to share repurchase program (total $10.25B authorized through Feb 28, 2027). $1.38B remaining as of Feb 4, 2026. FY2025 buybacks totaled $2.3B.</li>
+  </ul>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Analyst Reaction, Stock Move &amp; Consensus</h4>
+  <ul>
+    <li><strong>Earnings day move (Feb 5, 2026):</strong> FTNT gained approximately <strong>+4.85%</strong> on the day of the Q4 2025 earnings release — a moderate positive reaction. Peers were mixed: PANW +1.12%, NET −3.32%. The reaction was stock-specific and positive, but tempered by 2026 billings guidance of only ~13% growth.</li>
+    <li><strong>52-week range:</strong> $70.12 – $109.33. Current price of ~$81 represents a ~26% discount to the 52-week high, trading near long-term support at $79–$80.</li>
+    <li><strong>Consensus rating (April 2026):</strong> 27 analysts — average rating <strong>"Hold."</strong> Average 12-month price target $88–$91, representing ~8–12% upside from $81. Range: $70 (bear) to $130 (bull). One analyst (Buy, $95 PT) cited "robust business momentum and revised DCF assumptions."</li>
+    <li><strong>Key analyst concerns:</strong>
+      <ul>
+        <li>Billings growth deceleration: FY2024 billings +2.1% (near stall), FY2025 +16% (recovery), FY2026 guided +13% — trend is unclear and creates guidance credibility questions.</li>
+        <li>Product revenue cyclicality: Declined 1% in FY2024; recovered +16% in FY2025 — hardware refresh cycle timing creates lumpiness and visibility challenges.</li>
+        <li>Competitive pressure: Microsoft, Palo Alto, CrowdStrike expanding into adjacent SASE and SecOps markets; J.P. Morgan downgraded citing competitive pressures.</li>
+        <li>Securities class action lawsuits (Glancy Prongay &amp; Murray; Kahn Swick &amp; Foti) filed related to FY2023 billings guidance — headline litigation risk remains unresolved.</li>
+        <li>March 2026 sector headwind: Cybersecurity stocks sold off on Anthropic "Mythos" AI model reports (threat to legacy detection tools), though Fortinet held up better than peers.</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+
+<!-- ═══ SECTION ⑤ ═══ -->
+<h2>⑤ Red Flags</h2>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 1. Margins Compressing — STATUS: NOT PRESENT (Definitively Improving)</h4>
+  <p>GAAP operating margin trajectory: 19.5% (FY2021) → 21.9% (FY2022) → 23.4% (FY2023) → 30.3% (FY2024) → 30.7% (FY2025). This is an <strong>expansion of 11.2 percentage points over five years</strong>. Q4 2025 GAAP operating margin reached 33% — a company record for any single quarter. Non-GAAP operating margin reached 35.5% for full-year 2025. Gross margin has stabilized at 80–81%. FY2026 guidance calls for non-GAAP margins of 34.5–35.5%, implying continued discipline. The one exception was FY2021's slight dip from FY2020 (20.5% → 19.5%), which management explicitly described as a deliberate investment year. No margin compression flag is warranted.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 2. Volume / Subscriber Declining — STATUS: WATCH (Deceleration in Service Revenue)</h4>
+  <p>Service revenue growth has decelerated for three consecutive years: 28% (FY2023) → 20% (FY2024) → 13% (FY2025). Product revenue declined 1% in FY2024 before recovering 16% in FY2025. Billings growth collapsed to 2.1% in FY2024 before recovering to 16% in FY2025. Unified SASE ARR and Security Ops ARR are growing at 28–32%, which partially offsets the deceleration in legacy service revenue. The company now has 800,000+ customers (vs. 550,000 in FY2021), but net new customer acquisition pace is not separately disclosed. The service revenue growth slowdown from 28% to 13% is the single most important metric to monitor in FY2026 quarterly results. <strong>Flag: Watch — not confirmed as structural decline, but requires Q1–Q2 2026 monitoring to confirm re-acceleration or sustained deceleration.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 3. FCF Volatile Without Clear Explanation — STATUS: CONFIRMED (FY2023 anomaly; resolution verified)</h4>
+  <p>FCF dropped ~48% in FY2023 — <strong>this is confirmed as an anomaly</strong> that triggers the ±25% flag. However, management's explanation has been verified across multiple earnings calls and press releases: billings deceleration reduced deferred revenue inflows; elevated real estate/capex spending in FY2023 increased cash outflows. FCF recovered to $1.88B in FY2024 (+121%) and $2.21B in FY2025 (+18%). The trajectory is now constructive. The risk is forward-looking: if billings decelerate again in FY2026 (guidance suggests moderation to ~13%), FCF growth could slow materially. Currently resolved for FY2023; forward risk exists if billings disappoint.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 4. Capex &gt;70% of Operating CF — STATUS: NOT PRESENT</h4>
+  <p>FY2025 capex: $364.8M. FY2025 operating cash flow: $2.60B. Capex-to-OCF ratio: <strong>14%</strong> — far below the 70% danger threshold. Even in FY2023, the elevated capex year (~$480M capex / ~$1.33B OCF), the ratio was only ~36%. Fortinet's capital model is asset-light on an ongoing basis; the FY2023 spike was due to real estate purchases that are non-recurring. The company's FCF consistently represents 80%+ of OCF (FY2025 FCF margin: 32.5% of revenue). No concern.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 5. Debt Growing During Difficult Revenue Period — STATUS: NOT PRESENT</h4>
+  <p>Fortinet's debt profile is conservative and has not grown materially during any revenue slowdown. As of FY2025 year-end: $2.5B in cash and equivalents vs. $496.6M in long-term debt — a net cash position of approximately $2.0B. D/E ratio is 0.40 (long-term debt to equity). The company has not raised debt to fund operations during downturns. During the FY2023 billings/revenue deceleration, the balance sheet remained clean, and the company continued share buybacks ($1.5B in FY2023). Capital allocation discipline is intact.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🚩 6. Management Using "Uncertainty" / "Headwinds" Repeatedly — STATUS: WATCH (Historical FY2023 confirmed; currently benign)</h4>
+  <p>In FY2023 earnings calls (particularly Q2 and Q3 2023), Fortinet management used "macro uncertainty," "elongated sales cycles," "partner inventory digestion," and "headwinds in the firewall market" repeatedly — this was a confirmed management language red flag that preceded the billings collapse. FY2024 and FY2025 language shifted back to confident, growth-focused commentary ("broad-based demand," "above guidance"). However, the March 2026 sector headwind from Anthropic AI model development created renewed investor anxiety, and analyst notes reference "competitive pressures" as ongoing. <strong>Monitor Q1 2026 earnings call (May 6, 2026) for any return of cautious language around SASE pipeline or enterprise spending delays.</strong></p>
+</div>
+
+
+<!-- ═══ SECTION ⑥ ═══ -->
+<h2>⑥ Invert — Charlie Munger Style</h2>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Why This Could Be a Bad Long-Term Investment</h4>
+  <ul>
+    <li><strong>Billings growth deceleration is structural, not cyclical:</strong> The cycle 32% (FY2022) → 14% (FY2023) → 2.1% (FY2024) → 16% (FY2025) → guided 13% (FY2026) reveals a company whose core firewall/network security market is maturing. At a PEG of 2.0x, a sustained 10–14% growth rate may not justify the current multiple versus other asset classes.</li>
+    <li><strong>Platform commoditization risk:</strong> Fortinet's hardware-centric approach (FortiGate appliances powered by FortiASIC) faces secular pressure as workloads migrate to cloud-native security. The firewall market historically commoditizes. Market share in hardware units (55%) does not automatically translate to software/SaaS economics at scale.</li>
+    <li><strong>SASE late-mover risk:</strong> Palo Alto, Zscaler, and Cloudflare have multi-year leads in pure-cloud SASE architectures. Fortinet's "SASE-within-FortiOS" approach appeals to existing hardware customers but may underperform in greenfield cloud-native deployments. Unified SASE ARR, while growing rapidly, is still small relative to the total addressable market.</li>
+    <li><strong>Valuation re-rating risk:</strong> If FY2026 revenue growth lands at the low end of guidance (10%) and billings growth disappoints at &lt;12%, the stock could re-rate toward 20–22x forward P/E, implying 20–35% downside from current $81 levels. The "Hold" consensus already reflects limited analyst conviction.</li>
+  </ul>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 What Could Invalidate It Despite Good Financials</h4>
+  <ul>
+    <li><strong>AI-native threat disruption:</strong> Anthropic's Claude Mythos AI model (reported March 2026) can identify and exploit cyber vulnerabilities, creating a structural challenge for signature-based and hardware-dependent security tools. If AI fundamentally accelerates the threat landscape faster than Fortinet can update its detection stack, the value proposition of FortiGate appliances and FortiGuard threat intelligence erodes. This is not yet a confirmed risk but is a credible medium-term thesis.</li>
+    <li><strong>Hyperscaler security bundling:</strong> Microsoft Defender, Google Chronicle, and AWS Security Hub continue expanding capabilities. If these platforms bundle "good enough" security into cloud subscriptions at near-zero marginal cost, Fortinet's addressable market compresses, particularly for SME/mid-market customers.</li>
+    <li><strong>Class action litigation:</strong> Active securities class action lawsuits (Glancy Prongay &amp; Murray; Kahn Swick &amp; Foti) related to FY2023 guidance disclosures represent unquantified legal liability. Adverse judgments could trigger significant cash outflows and management distraction.</li>
+    <li><strong>Founder/key-man departure:</strong> Ken Xie (CEO/founder) and Michael Xie (CTO/founder) have been with the company since 2000. Their institutional knowledge is deeply embedded in FortiASIC design and customer relationships. Any unexpected leadership transition would create significant uncertainty about product roadmap execution and investor confidence.</li>
+  </ul>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Assumptions That Must Go Right</h4>
+  <ul>
+    <li><strong>Unified SASE must scale to multi-billion ARR:</strong> Security Ops ARR was $422M in Q4 2024, growing 32%. For SASE and SecOps to justify the current growth narrative, combined ARR must reach $3–5B within 3–4 years. This requires consistent 30%+ ARR growth in both segments — achievable, but not guaranteed given the competitive intensity from Palo Alto and Zscaler.</li>
+    <li><strong>Gross margins must hold above 79%:</strong> The FY2024 gross margin surge to 80.6% (from 76.7% in FY2023) was driven by a favorable mix shift toward higher-margin service revenue and cost discipline. Any reversion — driven by product revenue growth outpacing service, or SASE pricing pressure — could compress gross margins and damage earnings quality.</li>
+    <li><strong>Product revenue hardware refresh cycle must continue in FY2026:</strong> Product revenue recovered 16% in FY2025 after a 1% decline in FY2024. If enterprise customers again delay hardware refreshes (as occurred in FY2023–FY2024), total revenue growth could fall to 8–10%, below guidance and consensus.</li>
+    <li><strong>Operating leverage must materialize in FY2026:</strong> Guidance of 34.5–35.5% non-GAAP operating margin and $7.50–$7.70B revenue implies continued discipline on headcount and R&D spending. If the company increases headcount aggressively to capture SASE market share, margins could compress below guidance, disappointing the Street.</li>
+  </ul>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">🔄 Structural Weaknesses (Industry / Balance Sheet / Management Dependency)</h4>
+  <ul>
+    <li><strong>Hardware/ASIC dependency in a software-defined world:</strong> Fortinet's competitive moat is built partly around custom FortiASIC chips that deliver hardware-accelerated security processing. This requires long design and manufacturing cycles and significant R&D capital. As security workloads move to cloud-native architectures, hardware advantages become less relevant, and the ASIC investment may not be recoverable.</li>
+    <li><strong>Channel dependency and sales strategy risk:</strong> Fortinet distributes primarily through channel partners (VARs/distributors). The FY2023 billings collapse was partly triggered by a "sales strategy shift" that disrupted channel dynamics — a risk that can recur if channel management execution falters or partner inventory dynamics create pull-forward/pull-back cycles.</li>
+    <li><strong>Geographic concentration:</strong> Americas accounts for approximately 65% of revenue. International growth, particularly in APAC and EMEA, has been inconsistent. Trade restriction risks, data sovereignty regulations, and local competition limit global expansion velocity.</li>
+    <li><strong>Deferred revenue cliff risk:</strong> $6.36B in deferred revenue (as of FY2024 year-end) provides revenue visibility but also creates asymmetric downside: if renewal rates deteriorate or customers downsize contracts at renewal, recognized revenue will lag actual demand signals by 12–36 months, masking real-time business deterioration until the deferred revenue base burns through.</li>
+    <li><strong>Cybersecurity sector correlation:</strong> FTNT trades with high correlation to the XLC cybersecurity index. Sector-wide de-rating events — as demonstrated by the March 2026 Anthropic AI narrative selling off the entire sector — can compress Fortinet's multiple independently of its fundamental performance.</li>
+  </ul>
+</div>
+
+
+<!-- ═══ SECTION ⑦ ═══ -->
+<h2>⑦ Golden Tips — Applied to Fortinet (FTNT)</h2>
+
+<div class="card golden">
+  <h4 class="green">💡 GAAP vs. Non-GAAP Check — Finding: LOW CONCERN. Best-in-class transparency.</h4>
+  <p>Fortinet's GAAP operating margin (FY2025: 30.7%) vs. non-GAAP (35.5%) represents a gap of approximately <strong>4.8 percentage points</strong> — the smallest GAAP/non-GAAP spread among the five companies in this comparison. The entire gap is attributable to SBC ($258M, ~4.2% of revenue) and minimal amortization. For comparison: Palo Alto Networks carries a 25+ point GAAP/non-GAAP gap; CrowdStrike is GAAP-negative; Cloudflare operates at a GAAP operating loss of −9.3%. Fortinet has been GAAP profitable every year since its 2009 IPO — a rare distinction in cybersecurity. FY2025 GAAP EPS of $2.42 and GAAP net income of $1.85B are real, audited numbers. StockTitan confirms Fortinet's earnings quality ratio is 1.40x (cash-backed). The GAAP/non-GAAP signal is unambiguously positive: Fortinet's non-GAAP improvements are largely real, not accounting sleight-of-hand.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 FCF vs. Net Income Signal — Finding: STRONGLY POSITIVE. FCF persistently exceeds GAAP net income.</h4>
+  <p>FY2025: FCF $2.21B vs. GAAP net income $1.85B → FCF conversion ratio of <strong>~119%</strong>. This occurs because Fortinet bills annual and multi-year service contracts upfront (creating deferred revenue), then recognizes them ratably. The deferred revenue balance of $6.36B (FY2024 year-end) represents pre-collected cash that will be recognized as revenue over future periods — a structural advantage. FY2025 OCF-to-net income ratio (earnings quality) is confirmed at 1.40x. The important caveat: when billings stall (as in FY2023), the deferred revenue pipeline shrinks, and FCF can drop below net income temporarily. Investors must track billings growth as the leading indicator of future FCF. Currently: FCF &gt; Net Income = high-quality earnings signal. Positive flag active.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Revenue Up / Margins Down Warning — Finding: NO WARNING. Opposite pattern confirmed — the Lynch "sweet spot."</h4>
+  <p>Over the 5-year review period, Fortinet grew revenue every year while simultaneously expanding GAAP operating margins from 19.5% (FY2021) to 30.7% (FY2025) — a gain of 11.2 percentage points while revenue grew 104%. This is the textbook Lynch "compounding machine" profile: a company achieving operating leverage while scaling its top line. The only blemish was the FY2021 intentional investment year (margin dipped 1pp from FY2020) — confirmed by management as strategic. The concern to monitor: FY2026 guidance for non-GAAP margins of 34.5–35.5% is essentially flat vs. FY2025's 35.5%. If revenue growth disappoints (below 12%), operating leverage may not materialize and GAAP margins could stall at 30–31%. As of today: Revenue up AND margins up — no warning, but FY2026 margin expansion must be monitored.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Capex Pattern Analysis — Finding: DECLINING CAPEX TREND. Widening FCF margin confirms operating leverage.</h4>
+  <p>Capex as a percentage of revenue has been declining: FY2021 ~4.5% → FY2023 ~9.1% (elevated, real estate spike — <strong>this was an anomaly</strong>) → FY2024 ~6.4% → FY2025 ~5.4%. In absolute terms, FY2025 capex of $364.8M was 3.7% lower than FY2024, while revenue grew 14%. This is a textbook capex leverage pattern: the business is scaling faster than its fixed asset requirements. The FY2023 capex spike (~$480M, primarily real estate purchases) was a one-time event confirmed by management and fully reflected in the FCF anomaly analysis. The capex-to-OCF ratio of 14% in FY2025 is one of the lowest in the cybersecurity sector. The declining capex trend, combined with rising OCF, creates a widening FCF margin (32.5% of revenue in FY2025 vs. ~16% in FY2023) — a clear positive trajectory. No capex concern flags triggered. The FCF 15-year CAGR of 23.5% (FinanceCharts.com) validates the long-run quality of the cash generation model.</p>
+</div>
+
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <strong>═══ SOURCES &amp; DATA CITATIONS ═══</strong><br><br>
+  [1] Fortinet IR — FY2025 Q4

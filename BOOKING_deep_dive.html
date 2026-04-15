@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking Holdings — Peter Lynch Financial & SBC Impact Screener</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:180px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}.trend-down{color:var(--red);font-weight:600}
+  .anomaly{color:var(--accent);font-weight:700}.na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}.cell-good{background:#e8f5e9}.cell-warn{background:#fff8e1}.cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}.dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}.dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}.card.invert{border-left-color:var(--gold)}.card.golden{border-left-color:var(--green)}.card.management{border-left-color:var(--teal)}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}.card h4.gold{color:var(--gold)}.card h4.teal{color:var(--teal)}.card h4.green{color:var(--green)}
+  .card p,.card li{font-size:13px;line-height:1.7}.card ul{padding-left:18px}.card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}.badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}.badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}.cat-fast{background:#f3e5f5;color:#6a1b9a}.cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px}
+  .stat-box{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center}.stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>Booking Holdings Inc.</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: BKNG (NASDAQ) · Post 25-for-1 Split Price</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>April 8, 2026</span></div>
+    <div class="meta-item">Price: <span>~$182 (post-split)</span></div>
+    <div class="meta-item">Market Cap: <span>~$143B</span></div>
+    <div class="meta-item">Category: <span>Stalwart / Fast Grower Hybrid</span></div>
+    <div class="meta-item">HQ: <span>Norwalk, CT / Amsterdam, NL</span></div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">FY2024 Revenue</div>
+    <div class="stat-val">$23.7B</div>
+    <div class="stat-sub">+11% YoY</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">TTM FCF</div>
+    <div class="stat-val">$9.1B</div>
+    <div class="stat-sub">~38% FCF Margin</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">ROIC (GuruFocus)</div>
+    <div class="stat-val">~47%</div>
+    <div class="stat-sub">vs WACC ~10.6%</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Fwd P/E</div>
+    <div class="stat-val">~15.7x</div>
+    <div class="stat-sub">PEG: 0.93</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Room Nights (FY24)</div>
+    <div class="stat-val">+13%</div>
+    <div class="stat-sub">Full-Year Growth</div>
+  </div>
+</div>
+
+<!-- ① 5-YEAR FINANCIAL TREND TABLE -->
+<h2>① 5-Year Financial Trend</h2>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>FY 2020</th>
+      <th>FY 2021</th>
+      <th>FY 2022</th>
+      <th>FY 2023</th>
+      <th>FY 2024</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Revenue (bn)</td>
+      <td class="trend-down">$6.8B</td>
+      <td class="trend-up">$11.0B</td>
+      <td class="anomaly">$17.1B</td>
+      <td class="trend-up">$21.4B</td>
+      <td class="trend-up">$23.7B</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth %</td>
+      <td class="trend-down">-55%</td>
+      <td class="trend-up">+62%</td>
+      <td class="anomaly">+56% ⚠</td>
+      <td class="trend-up">+25%</td>
+      <td class="trend-up">+11%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Room Night Growth % (Volume)</td>
+      <td class="trend-down">-63%</td>
+      <td class="trend-up">+52%</td>
+      <td class="anomaly">+57% ⚠</td>
+      <td class="trend-up">+17%</td>
+      <td class="trend-up">+9%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Gross Margin %</td>
+      <td class="na">~91%</td>
+      <td class="trend-up">~91%</td>
+      <td class="trend-up">~91%</td>
+      <td class="trend-up">~87%</td>
+      <td class="trend-up">~87%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Margin %</td>
+      <td class="trend-down">-57%</td>
+      <td class="trend-up">6%</td>
+      <td class="trend-up">22%</td>
+      <td class="trend-up">28%</td>
+      <td class="trend-up">32%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF (Company-Reported)</td>
+      <td class="trend-down">~$0.6B</td>
+      <td class="trend-up">~$2.3B</td>
+      <td class="anomaly">~$4.9B ⚠</td>
+      <td class="trend-up">~$6.8B</td>
+      <td class="trend-up">~$7.9B</td>
+    </tr>
+    <tr>
+      <td class="row-label">Operating Cash Flow</td>
+      <td class="trend-down">~$0.9B</td>
+      <td class="trend-up">~$2.7B</td>
+      <td class="trend-up">~$5.2B</td>
+      <td class="trend-up">~$7.0B</td>
+      <td class="trend-up">~$8.2B</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="trend-down">~neg.</td>
+      <td class="trend-up">~8%</td>
+      <td class="trend-up">~28%</td>
+      <td class="trend-up">~38%</td>
+      <td class="trend-up">~47%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend per Share (pre-split adj.)</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="trend-up">$34.96</td>
+      <td class="trend-up">$35.00</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Growth %</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">Initiated</td>
+      <td class="trend-up">~0.1%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Yield %</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="trend-up">~0.8%</td>
+      <td class="trend-up">~0.9%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E (Current Only)</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="trend-up">~15.7x</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio (Current Only)</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="na">—</td>
+      <td class="trend-up">0.93</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt/Equity %</td>
+      <td class="trend-down">~+900%</td>
+      <td class="trend-down">~+700%</td>
+      <td class="trend-down">~+600%</td>
+      <td class="trend-down">~+800%</td>
+      <td class="trend-down">Net Debt ~$1.8B</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td class="na">~0.4%</td>
+      <td class="na">~1.1%</td>
+      <td class="trend-up">~3.1%</td>
+      <td class="trend-up">~4.2%</td>
+      <td class="trend-up">~5.5%</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC as % of Revenue</td>
+      <td class="trend-down">~4.8%</td>
+      <td class="trend-down">~3.4%</td>
+      <td class="trend-up">~2.4%</td>
+      <td class="trend-up">~2.5%</td>
+      <td class="trend-up">~2.5%</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card management">
+  <h4 class="teal">⚠ Anomaly Flags — Trend Table</h4>
+  <ul>
+    <li><strong>FY2020 Revenue -55%:</strong> This is an anomaly — COVID-19 collapsed global travel; revenue fell from $15.1B (2019) to $6.8B. Not a structural failure but an exogenous shock.</li>
+    <li><strong>FY2022 Revenue +56%:</strong> This is an anomaly — post-COVID travel rebound drove one-time surge acceleration. GAAP operating margin jumped from 6% to 22% in one year.</li>
+    <li><strong>FY2022 FCF jump to ~$4.9B:</strong> This is an anomaly — FCF nearly doubled year-over-year (+113%), driven by massive revenue recovery and working capital release. Exceeds the 25% FCF volatility flag threshold.</li>
+    <li><strong>Net Debt/Equity:</strong> Technically deeply negative book equity due to aggressive share buybacks ($6B repurchased in FY2024 alone) — the ratio is negative-equity-denominated. This is a structural artifact, not insolvency risk.</li>
+    <li><strong>Gross Margin note:</strong> BKNG reports near-100% gross margin as its "cost of revenue" is very minimal (OTA model). The ~87% figure uses adjusted COGS including certain variable merchant costs. Agency model carries effectively ~100% gross margin.</li>
+  </ul>
+</div>
+<div class="note">Sources: Booking Holdings FY2024 Earnings Press Release (Feb 20, 2025); SEC 10-K filing bkng-20241231; stockanalysis.com/stocks/bkng; macrotrends.net/BKNG; bullfincher.io; GuruFocus BKNG ROIC page. FY2020/2021 figures sourced from macrotrends.net historical data. SBC from macrotrends.net stock-based-compensation/BKNG. Pre-split dividend per share adjusted to $8.75/quarter × 4 = $35 (pre-split).</div>
+
+<!-- ② LYNCH SCREENER COMPETITOR BENCHMARK -->
+<h2>② Lynch Screener — Competitor Benchmark</h2>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>BKNG<br>Booking Holdings</th>
+      <th>ABNB<br>Airbnb</th>
+      <th>EXPE<br>Expedia</th>
+      <th>MAR<br>Marriott</th>
+      <th>HLT<br>Hilton</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Category (Lynch)</td>
+      <td>Stalwart/Fast Grower</td>
+      <td>Fast Grower</td>
+      <td>Turnaround</td>
+      <td>Stalwart</td>
+      <td>Stalwart</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth (FY24)</td>
+      <td class="cell-good">✅ +11%</td>
+      <td class="cell-good">✅ +12%</td>
+      <td class="cell-warn">⚠️ +7%</td>
+      <td class="cell-warn">⚠️ +6%</td>
+      <td class="cell-warn">⚠️ +7%</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="cell-trophy">🏆 ~47%</td>
+      <td class="cell-good">✅ ~28%</td>
+      <td class="cell-good">✅ ~57% (note)</td>
+      <td class="cell-warn">⚠️ ~18% (note)</td>
+      <td class="cell-warn">⚠️ ~14%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Op. Margin %</td>
+      <td class="cell-trophy">🏆 ~32%</td>
+      <td class="cell-good">✅ ~23%</td>
+      <td class="cell-warn">⚠️ ~12%</td>
+      <td class="cell-good">✅ ~18%</td>
+      <td class="cell-good">✅ ~24%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP vs Non-GAAP Gap (pts)</td>
+      <td class="cell-good">✅ ~8–10 pts</td>
+      <td class="cell-warn">⚠️ ~15+ pts</td>
+      <td class="cell-bad">❌ ~18+ pts</td>
+      <td class="cell-good">✅ ~5–8 pts</td>
+      <td class="cell-good">✅ ~6–9 pts</td>
+    </tr>
+    <tr>
+      <td class="row-label">Fwd P/E</td>
+      <td class="cell-trophy">🏆 ~15.7x</td>
+      <td class="cell-warn">⚠️ ~25.4x</td>
+      <td class="cell-trophy">🏆 ~12.3x</td>
+      <td class="cell-warn">⚠️ ~21x</td>
+      <td class="cell-bad">❌ ~28x</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio</td>
+      <td class="cell-trophy">🏆 0.93</td>
+      <td class="cell-warn">⚠️ 1.54</td>
+      <td class="cell-trophy">🏆 0.73</td>
+      <td class="cell-warn">⚠️ ~1.8</td>
+      <td class="cell-bad">❌ ~2.5</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt/Equity</td>
+      <td class="cell-warn">⚠️ Net Debt ~$1.8B (neg equity)</td>
+      <td class="cell-trophy">🏆 Net Cash ~$8.7B</td>
+      <td class="cell-warn">⚠️ Net Debt ~$0.8B</td>
+      <td class="cell-bad">❌ Net Debt ~$16.2B</td>
+      <td class="cell-bad">❌ Net Debt ~heavy</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td class="cell-trophy">🏆 ~6.4%</td>
+      <td class="cell-good">✅ ~5.5%</td>
+      <td class="cell-trophy">🏆 ~7.0%</td>
+      <td class="cell-warn">⚠️ ~1.6%</td>
+      <td class="cell-warn">⚠️ ~2.2%</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC % Revenue</td>
+      <td class="cell-trophy">🏆 ~2.5%</td>
+      <td class="cell-bad">❌ ~9–10%</td>
+      <td class="cell-warn">⚠️ ~5%</td>
+      <td class="cell-good">✅ ~1.5%</td>
+      <td class="cell-good">✅ ~1.8%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Quality</td>
+      <td class="cell-trophy">🏆 Excellent — OCF converts strongly; low capex (~$290M vs $8.2B OCF)</td>
+      <td class="cell-good">✅ Strong — 40%+ FCF margin; high SBC offset</td>
+      <td class="cell-warn">⚠️ Moderate — capex elevated relative to OCF; SBC drag</td>
+      <td class="cell-warn">⚠️ Mixed — high capex burden ($1.15B); thin FCF after buybacks</td>
+      <td class="cell-good">✅ Good — asset-light; franchise fees drive cash</td>
+    </tr>
+    <tr>
+      <td class="row-label">Buyback Efficiency</td>
+      <td class="cell-trophy">🏆 $6B buyback FY24; shares outstanding reduced ~2M+; accretive</td>
+      <td class="cell-warn">⚠️ $2.75B buyback — mostly offsets SBC dilution</td>
+      <td class="cell-good">✅ $1.6B buyback FY24; meaningful reduction</td>
+      <td class="cell-good">✅ Consistent buyback; high payout total</td>
+      <td class="cell-good">✅ Steady buyback program; EPS accretive</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<div class="note">
+  Sources: stockanalysis.com (BKNG, ABNB, EXPE, MAR, HLT statistics pages); GuruFocus ROIC pages; macrotrends.net; Q4 2024 earnings releases for BKNG (Feb 20, 2025), ABNB, EXPE (Feb 6, 2025). ROIC note: EXPE's 57% ROIC is inflated by negative book equity denominator — treat with caution. MAR ROIC sourced from Motley Fool Q4 2025 data (~18.5%). HLT ROIC from GuruFocus TTM data (~13.5%). GAAP vs Non-GAAP gap estimated from respective earnings releases. FCF Yield = TTM FCF ÷ Market Cap (BKNG ~$9.1B FCF ÷ ~$143B mktcap = ~6.4%).
+</div>
+
+<!-- ③ DCF TABLE 2 MODE B -->
+<h2>③ DCF Analyst — Table 2 Mode B</h2>
+
+<div class="card management">
+  <h4 class="teal">⚡ FCF Volatility Flag</h4>
+  <p>FCF changed from ~$2.3B (FY2021) to ~$4.9B (FY2022) — a <strong>+113% jump</strong>. This is an anomaly — exceeds the 25% YoY FCF change threshold significantly. Driven by post-COVID travel demand normalization and working capital release. FCF trend since FY2022 has been stable and progressively growing (+38% from FY2022 to FY2024), so this is a one-time recovery phenomenon, not structural instability. FY2024 FCF of ~$7.9B grew ~+16% vs FY2023 (~$6.8B) — within normal range. No flag for TTM FCF growth.</p>
+</div>
+
+<div class="dcf-inputs">
+  <strong>DCF Model Assumptions — Booking Holdings (BKNG) FY2024 Base</strong><br>
+  Base FCF (FY2024 Reported): $7.9B &nbsp;|&nbsp; Sector: OTA / Tech-enabled Travel Platform<br>
+  Sector Cap Rule: Tech/SaaS-adjacent platform — <strong>No hard cap applied</strong> (per protocol for Tech/SaaS)<br>
+  FCF = 85% of NOPAT assumption applied in terminal; margin flat at TTM FCF margin (~33%)<br>
+  Terminal Growth Rate (g): 3.0%<br>
+  Discount Rates (r): 8%, 10%, 12%<br>
+  Shares Outstanding (post-split adjusted): ~793M<br>
+  Current Price: ~$182 (post 25-for-1 split, April 2026)<br>
+  Net Debt: ~$1.8B (cash $17.2B − debt $19.4B per stockanalysis.com TTM)<br>
+  <br>
+  <strong>Scenario FCF Growth Assumptions (Y1–5 / Y6–10):</strong><br>
+  Bear: 5% / 4% &nbsp;|&nbsp; Base-Low: 8% / 6% &nbsp;|&nbsp; Base: 11% / 8% &nbsp;|&nbsp; Bull: 14% / 10% &nbsp;|&nbsp; Max Cap: 18% / 12%
+</div>
+
+<div class="table-wrap">
+<table class="dcf-table">
+  <thead>
+    <tr>
+      <th class="row-head">Discount Rate</th>
+      <th>🐻 Bear<br>5%→4%</th>
+      <th>📉 Base-Low<br>8%→6%</th>
+      <th>📊 Base<br>11%→8%</th>
+      <th>📈 Bull<br>14%→10%</th>
+      <th>🚀 Max Cap<br>18%→12%</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">r = 8%</td>
+      <td class="dcf-yellow">$161 <br><span style="font-size:10px">-12% vs price</span></td>
+      <td class="dcf-yellow">$198 <br><span style="font-size:10px">+9% vs price</span></td>
+      <td class="dcf-green">$243 🟢<br><span style="font-size:10px">+34% vs price</span></td>
+      <td class="dcf-green">$302 🟢<br><span style="font-size:10px">+66% vs price</span></td>
+      <td class="dcf-green">$389 🟢<br><span style="font-size:10px">+114% vs price</span></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 10%</td>
+      <td class="dcf-red">$124 🔴<br><span style="font-size:10px">-32% vs price</span></td>
+      <td class="dcf-yellow">$152 <br><span style="font-size:10px">-16% vs price</span></td>
+      <td class="dcf-yellow">$188 <br><span style="font-size:10px">+3% vs price</span></td>
+      <td class="dcf-green">$235 🟢<br><span style="font-size:10px">+29% vs price</span></td>
+      <td class="dcf-green">$301 🟢<br><span style="font-size:10px">+65% vs price</span></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 12%</td>
+      <td class="dcf-red">$98 🔴<br><span style="font-size:10px">-46% vs price</span></td>
+      <td class="dcf-red">$120 🔴<br><span style="font-size:10px">-34% vs price</span></td>
+      <td class="dcf-yellow">$149 <br><span style="font-size:10px">-18% vs price</span></td>
+      <td class="dcf-yellow">$186 <br><span style="font-size:10px">+2% vs price</span></td>
+      <td class="dcf-green">$238 🟢<br><span style="font-size:10px">+31% vs price</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card management">
+  <h4 class="teal">DCF Interpretation</h4>
+  <p>At ~$182 (post-split), BKNG is approximately fairly valued in the Base scenario at a 10% discount rate. The Base-Low (8%→6%) at 10% discount rate yields $152 — modest downside if growth decelerates to 8%/6%. The current PEG of 0.93 and Fwd P/E of ~15.7x suggest the market is pricing in moderate but not heroic growth. The stock appears <strong>most attractive in a 8% discount rate + Base or better scenario</strong>, where DCF values range from $243–$302. For a more conservative investor using 10–12% discount rates, the margin of safety only emerges at Bull or Max scenarios. Key sensitivity: every 1pt change in terminal growth rate moves intrinsic value by ~$15–$25 per share.</p>
+</div>
+
+<div class="note">DCF methodology: FCF Y1-5 and Y6-10 projected at stated growth rates on FY2024 FCF base of $7.9B. Terminal value calculated using Gordon Growth Model (g=3%). Net debt of $1.8B subtracted. Result divided by ~793M post-split diluted shares. All figures are estimates for illustrative purposes — not investment advice. Source: FCF from bullfincher.io / stockanalysis.com; shares/net debt from stockanalysis.com TTM.</div>
+
+<!-- ④ MANAGEMENT COMMENTARY -->
+<h2>④ Management Commentary</h2>
+
+<div class="card management">
+  <h4 class="teal">Q4 2024 Earnings Call — Tone & CEO Commentary (Feb 20, 2025)</h4>
+  <p>CEO Glenn Fogel struck a <strong>confident but disciplined tone</strong> on the Q4 2024 earnings call. Full-year 2024 revenue grew 11% year-over-year, with management emphasizing "faster profitability growth" as a key outcome of disciplined cost management. Fogel highlighted the company's AI initiatives — including Booking.com's AI Trip Planner — as a long-term value driver, while acknowledging the revenue impact may "take longer to materialize compared to cost savings." On alternative accommodations, the segment saw 19% room night growth in Q4 — a positive read-through for the Airbnb competitive dynamic. Adjusted EBITDA surpassed $8 billion for the year, up 17%, and Adjusted EPS exceeded $187 per share, up 23%.</p>
+  <p style="margin-top:8px">On airline tickets, management noted 38% growth in airline tickets booked for the full year (almost 50 million), with Fogel expressing "excitement" about 52% growth momentum entering 2025 — flagging this as a key element of the "Connected Trip" vision. The company maintained its policy of not commenting on M&A, but the failed Etraveli acquisition (blocked by EU regulators) was replaced by an 8-year commercial partnership.</p>
+  <p style="margin-top:8px"><strong>Share buybacks:</strong> $6 billion was repurchased in 2024, with $7.7 billion remaining under authorization — signaling continued confidence in intrinsic value well above then-prevailing market prices.</p>
+  <p style="margin-top:8px"><strong>Q1 2025 guidance:</strong> Room night growth projected at 5–7%, impacted by leap year and Easter timing. Management framed this as a timing headwind, not a structural demand issue.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Analyst Reaction & Top Concerns Post-Q4 2024</h4>
+  <p><strong>Consensus:</strong> 29 analysts covering BKNG with "Buy" consensus and an average price target of approximately $5,899 (pre-split, ~$236 post-split) — implying ~30%+ upside from current levels. The stock's 52-week range post-split is approximately $151–$234.</p>
+  <p style="margin-top:8px"><strong>Stock Move:</strong> BKNG shares were broadly stable post-Q4 2024 earnings release, as results were broadly in-line with elevated expectations. The stock has declined ~10% over the past 52 weeks as of early April 2026.</p>
+  <p style="margin-top:8px"><strong>Top Analyst Concerns:</strong></p>
+  <ul>
+    <li><strong>AI disruption risk:</strong> Agentic AI platforms (e.g., OpenAI, Google) potentially bypassing traditional OTA booking channels — eroding BKNG's customer acquisition moat. Fogel acknowledged this risk but emphasized proprietary data and partnerships as competitive buffers. Note: In early April 2026, OpenAI was reported to be scaling back direct checkouts — a positive catalyst for OTA stocks.</li>
+    <li><strong>US market underperformance:</strong> Room night growth in the US remains "low-single digits" vs double-digit growth in Asia and Europe — a structural gap requiring addressal.</li>
+    <li><strong>KAYAK Goodwill Impairment:</strong> Q3 2025 reportedly included a $457M KAYAK goodwill impairment — a material write-down flagging competitive pressure on the metasearch brand.</li>
+    <li><strong>Traffic mix shift risk:</strong> Increasing paid traffic dependency versus direct bookings could pressure margins if performance marketing costs rise.</li>
+  </ul>
+</div>
+
+<!-- ⑤ RED FLAGS -->
+<h2>⑤ Red Flags</h2>
+
+<div class="card red-flag">
+  <h4 class="red">🔴 Red Flag 1: Margins Compressing</h4>
+  <p><span class="badge badge-green">NOT PRESENT</span> &nbsp; GAAP operating margins have expanded consistently: from ~22% (FY2022) to ~28% (FY2023) to ~32% (FY2024). The trend is materially positive. Adjusted EBITDA margin also expanded in FY2024. Gross margins are structurally stable at ~87–91% depending on revenue mix (agency vs. merchant). The one area to watch: rising performance marketing costs (sales & marketing = ~44% of revenue in FY2024) could slow further margin expansion. For now, this flag is <strong>Not Present</strong>.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🟡 Red Flag 2: Volume Declining</h4>
+  <p><span class="badge badge-yellow">WATCH</span> &nbsp; Full-year 2024 room nights grew 9% — healthy but a deceleration from 17% growth in FY2023. Q1 2025 guidance of 5–7% room night growth further decelerates, though management attributed this to calendar timing (leap year, Easter shift). Alternative accommodations and airline tickets remain high-growth verticals (+19% and +38% respectively in FY2024). The US market is a specific concern with room night growth in "low-single digits." Investors should monitor whether deceleration is temporary or structural. Flag status: <strong>Watch — deceleration is real but cyclical context applies.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🔴 Red Flag 3: FCF Volatile</h4>
+  <p><span class="badge badge-yellow">WATCH (Historical)</span> &nbsp; FY2020–FY2022 saw extreme FCF volatility: from ~$0.6B (2020) to ~$2.3B (2021) to ~$4.9B (2022) — a 113% jump exceeding the 25% threshold. This was entirely attributable to COVID-19 disruption and subsequent recovery, not to operational deterioration. Since FY2022, FCF trajectory has been smooth and growing: $4.9B → $6.8B → $7.9B (TTM $9.1B per stockanalysis). Current FCF trajectory is stable and accelerating. Flag: <strong>Historical anomaly, resolved — Not Present on a go-forward basis</strong>.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🟢 Red Flag 4: Capex &gt;70% of Operating Cash Flow</h4>
+  <p><span class="badge badge-green">NOT PRESENT</span> &nbsp; Booking Holdings is one of the most capital-efficient businesses globally. FY2024 capex was approximately $290–$330 million versus operating cash flow of ~$8.2 billion — a capex/OCF ratio of roughly 3.5–4%. This is dramatically below the 70% threshold. The company operates a capital-light OTA model with no owned real estate or hotel assets. This is a structural competitive advantage and should remain the case absent a major acquisition. Flag: <strong>Firmly Not Present</strong>.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🟡 Red Flag 5: Debt Growing in a Downturn</h4>
+  <p><span class="badge badge-yellow">WATCH</span> &nbsp; BKNG carries approximately $19.4B in total debt versus $17.2B in cash — a net debt position of ~$1.8B. Book equity is deeply negative due to aggressive share repurchases ($6B in FY2024 alone), which is a mechanical artifact, not an insolvency signal. Debt is well-structured with investment-grade ratings, and interest coverage remains strong (EBITDA ~$9.3B vs ~$700M annual interest). However, if a severe travel downturn hit (as in 2020), the company's ability to service debt while FCF collapses would require liquidity management. The $16.7B cash balance at year-end 2024 provides substantial cushion. Flag: <strong>Watch — leverage exists but manageable with current FCF generation</strong>.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">🟡 Red Flag 6: Management Using Uncertainty / Headwinds Language</h4>
+  <p><span class="badge badge-yellow">WATCH</span> &nbsp; CEO Fogel explicitly acknowledged on the Q4 2024 call that the revenue impact from AI advancements "may take longer to materialize compared to cost savings" — a measured hedge on AI investment returns. The company also cited "global geopolitical uncertainties" as a risk to bookings (Q3 2024 commentary). CFO Ewout Steenbergen noted Q1 2025 would be impacted by leap year and Easter timing. While this language is relatively measured and factual (not alarming), it signals management is actively hedging expectations. The KAYAK goodwill impairment in Q3 2025 suggests some candor about brand challenges. Flag: <strong>Watch — hedging language increasing but not alarming; KAYAK impairment requires monitoring</strong>.</p>
+</div>
+
+<!-- ⑥ INVERT -->
+<h2>⑥ Invert — Charlie Munger Style</h2>
+
+<div class="card invert">
+  <h4 class="gold">Why BKNG Could Be a Bad Long-Term Investment</h4>
+  <p>Booking.com's dominant market position rests on a network of supply (4 million+ properties) and marketing reach — both of which AI-native platforms could disintermediate over a 5–10 year horizon. If travelers begin booking via AI agents (OpenAI, Google Gemini, Apple AI) that negotiate directly with hotel inventory APIs, BKNG's "middleman" position collapses. The company charges ~13% take rate on gross bookings — a margin that could compress if AI drives price transparency and direct-supplier competition. Additionally, the company generates 78% of revenue from the Netherlands segment (Booking.com), creating massive geographic concentration risk. A single European regulatory action — such as the EU DMA forcing open-API access to its platform — could structurally impair its dominant market position. KAYAK's goodwill impairment (~$457M in Q3 2025) is a leading indicator of competitive erosion in metasearch.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">What Invalidates the Bull Case Despite Good Financials</h4>
+  <p>Strong ROIC, FCF, and margin expansion mean nothing if the underlying addressable market is being structurally disrupted. The bull case assumes BKNG can successfully evolve from a transactional OTA into an "AI-native Connected Trip" platform — essentially competing with Google, Airbnb, and potentially Apple on trip-planning and personalization. This is a technology transformation challenge of the highest order for a 27-year-old company primarily operating via web/app interfaces. If the company fails to execute on AI integration — or if its AI Trip Planner fails to gain consumer adoption relative to OpenAI or Perplexity — its organic growth thesis collapses. The market currently prices in moderate growth (Fwd P/E ~15.7x) but any sustained deceleration below 8% revenue growth would compress multiples rapidly.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Assumptions That Must Go Right for the Investment to Work</h4>
+  <ul>
+    <li><strong>Travel demand sustains:</strong> Global travel must continue recovering and growing — any macro recession, pandemic, or geopolitical shock disproportionately impacts OTAs as a discretionary spending category.</li>
+    <li><strong>AI partnership model works:</strong> BKNG must successfully partner with AI platforms (rather than being bypassed), leveraging its proprietary data as the negotiating chip.</li>
+    <li><strong>US growth recovery:</strong> Room night growth in the US (currently low-single digits) must accelerate — without it, BKNG cannot reaccelerate global growth past 12%.</li>
+    <li><strong>Marketing efficiency holds:</strong> Sales & marketing must remain disciplined. If Google, Meta, or AI platforms raise cost-per-click or shift demand away from search-based travel discovery, BKNG's ~44% revenue marketing spend becomes a structural burden.</li>
+    <li><strong>Regulatory moat holds:</strong> EU regulators must not force BKNG to open its platform or eliminate exclusivity/parity clauses — which already faced antitrust scrutiny in multiple jurisdictions.</li>
+  </ul>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Structural Weaknesses</h4>
+  <ul>
+    <li><strong>Negative book equity:</strong> Aggressive buybacks have created deeply negative stockholders' equity (~-$2.9B). While this is a mechanical artifact of capital returns, it distorts traditional leverage ratios and limits financial flexibility in a distress scenario.</li>
+    <li><strong>European overconcentration:</strong> ~78% of revenue from the Netherlands (Booking.com Europe-centric). A European travel demand shock, regulatory intervention, or currency headwind has outsized impact.</li>
+    <li><strong>Metasearch erosion (KAYAK):</strong> KAYAK faces existential competitive pressure from Google Hotels, TripAdvisor, and AI-native travel search. The $457M goodwill impairment (Q3 2025) suggests this erosion is accelerating.</li>
+    <li><strong>Dependency on paid traffic:</strong> Despite efforts to increase direct mix, performance marketing remains a large cost base. Algorithm changes at Google (its largest traffic source) represent a single-vendor risk that management acknowledges.</li>
+  </ul>
+</div>
+
+<!-- ⑦ GOLDEN TIPS -->
+<h2>⑦ Golden Tips — Analyst Insights</h2>
+
+<div class="card golden">
+  <h4 class="green">💡 Golden Tip 1: GAAP vs Non-GAAP — Read Both, Trust GAAP First</h4>
+  <p>Booking Holdings reports both GAAP Net Income and Adjusted Net Income. In FY2024, GAAP Net Income was ~$5.88B while Adjusted Net Income was higher. Key exclusions in the Non-GAAP bridge include: accruals for the Netherlands pension fund matter, the Spanish competition authority fine, Italian indirect tax settlements ($332M paid in 2024), and amortization of debt discount on convertible notes ($261M). Critically, BKNG's GAAP EPS actually grew 47% in 2024 — faster than Adjusted EPS (+23%). This is a positive anomaly that investors should note: GAAP is catching up to Non-GAAP as one-time charges normalize. However, always re-read the "Discrete Items" section of each earnings release — regulatory fines and tax settlements are recurring enough at BKNG to warrant treatment as semi-ongoing costs.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Golden Tip 2: FCF vs Net Income — FCF Is the Signal; Net Income Is the Noise</h4>
+  <p>At Booking Holdings, FCF significantly outpaces reported Net Income in quality and reliability as a valuation anchor. Why? The company's working capital model is structurally FCF-accretive: Booking.com collects merchant revenue at or before check-in, while paying hotel partners after the stay. This creates a "float" effect — negative working capital that generates free cash above accounting earnings. FY2024 FCF of ~$7.9B on net income of ~$5.9B implies a FCF/Net Income conversion ratio of ~134% — a hallmark of a high-quality capital-light platform business. When valuing BKNG, use FCF yield (~6.4% TTM) rather than earnings yield, as it more accurately reflects true owner earnings. Buffett would call this a "toll booth" — high certainty, low capital intensity, compounding float.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Golden Tip 3: Revenue Up, But Watch Where Margins Go Next</h4>
+  <p>BKNG has delivered impressive margin expansion from 22% GAAP operating margin (FY2022) to ~32% (FY2024). The question is whether further expansion is achievable or if margins are plateauing. The primary cost driver is sales & marketing (~44% of revenue in FY2024) — and this is fundamentally a Google tax. If direct booking mix (currently improving via Genius loyalty program) continues rising, marketing spend as a % of revenue should decline, expanding margins further. The company's AI transformation program targets up to $450M in annual savings by 2027 — if achieved, this could add 1.5–2 percentage points of operating margin. Monitor the "direct vs. performance marketing" mix each quarter as the leading indicator of margin trajectory. Any reversal — revenue growing but operating margin flat or declining — would be the first red flag to act on.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">💡 Golden Tip 4: Capex Pattern — A Feature, Not a Bug</h4>
+  <p>Booking Holdings' capex is extraordinarily low for a $24B-revenue global enterprise: approximately $290–$330M in FY2024, representing roughly 1.3% of revenue and only ~3.5% of operating cash flow. This is not a sign of underinvestment — it is the structural benefit of operating a pure-play platform business. BKNG owns no hotels, no planes, no cars. Its "assets" are software, data, and brand trust. This creates a virtuous flywheel: FCF accumulates rapidly, is returned to shareholders via buybacks ($6B in FY2024), and the business does not require debt-funded capex cycles to grow. Compare this to Marriott ($1.15B capex vs $2.7B OCF = 43% capex/OCF ratio) and the capital efficiency advantage is stark. The risk to monitor: if BKNG were to pursue a large transformative acquisition (e.g., a second failed Etraveli-type deal), capex intensity and debt could spike meaningfully — a scenario the market would penalize.</p>
+</div>
+
+<footer>
+  <strong>SOURCES</strong><br>
+  [1] Booking Holdings FY2024 Earnings Press Release, February 20, 2025 — ir.bookingholdings.com / s201.q4cdn.com/865305287/files/doc_financials/2024/q4/Q4-2024-BKNG-Earnings-Release.pdf<br>
+  [2] Booking Holdings Form 10-K (FY2024), SEC EDGAR — sec.gov/Archives/edgar/data/1075531/000107553125000010/bkng-20241231.htm<br>
+  [3] stockanalysis.com — BKNG Statistics & Valuation: stockanalysis.com/stocks/bkng/statistics/ (PE 25.33, Fwd PE 15.66, PEG 0.93, FCF $9.09B, Net Debt -$1.78B)<br>
+  [4] stockanalysis.com — ABNB Statistics: stockanalysis.com/stocks/abnb/statistics/ (Fwd PE 25.37, PEG 1.54, ROIC 15%)<br>
+  [5] stockanalysis.com — EXPE Statistics: stockanalysis.com/stocks/expe/statistics/ (Fwd PE 12.30, PEG 0.73, ROIC 56.93%)<br>
+  [6] stockanalysis.com — MAR Statistics: stockanalysis.com/stocks/mar/statistics/ (FCF $1.55B, Net Debt $16.2B)<br>
+  [7] GuruFocus — BKNG ROIC: gurufocus.com/term/ROIC/BKNG — ROIC TTM ~46.58%; WACC 10.60%<br>
+  [8] GuruFocus — HLT ROIC: gurufocus.com/term/roic/HLT — ROIC TTM ~13.53%<br>
+  [9] Macrotrends.net — BKNG Revenue, Operating Margin, SBC, Market Cap histories<br>
+  [10] Macrotrends.net — BKNG SBC: $599M (2024), $530M (2023), $404M (2022) — macrotrends.net/stocks/charts/BKNG/booking-holdings/stock-based-compensation<br>
+  [11] Expedia FY2024 Earnings Release, February 6, 2025 — expediagroup.com IR<br>
+  [12] Airbnb 2024 Annual Data — stockanalysis.com/stocks/abnb; TradingView/GuruFocus ABNB ROIC ~28% (FY2024)<br>
+  [13] Bullfincher.io — BKNG FCF $7.89B FY2024, EBITDA $9.34B FY2024<br>
+  [14] Companiesmarketcap.com — BKNG Operating Margin 36.17% FY2024 (adjusted basis); market cap data<br>
+  [15] Motley Fool — BKNG Q4 2025 data, ROIC 73.87% (TTM Q4 2025)<br>
+  [16] FinTel.io — KAYAK goodwill impairment $457M Q3 2025<br>
+  [17] Roic.ai — BKNG AI savings target $450M annually by 2027; Etraveli 8-year partnership extension<br>
+  [18] Yahoo Finance — BKNG 25-for-1 stock split effective April 6, 2026; historical price data<br>
+  [19] Benzinga — Consensus price target ~$5,884 pre-split (~$235 post-split)<br>
+  [20] Kenan-Flagler UNC Equity Research — EXPE NTM metrics; OTA competitive landscape analysis (Dec 2025)<br>
+  <br>
+  <strong>DISCLAIMER:</strong> This report is produced for informational and educational purposes only under the Peter Lynch analytical framework. It does not constitute investment advice, a solicitation, or a recommendation to buy or sell any security. All data sourced from public filings, third-party financial data providers, and company investor relations materials. Forward-looking statements and DCF valuations are estimates only and subject to material uncertainty. Past financial performance is not indicative of future results. The analyst producing this report may or may not hold positions in securities mentioned. Always conduct your own due diligence and consult a licensed financial adviser before making investment decisions. Prices reflect post-25-for-1 split levels as of April 8, 2026.
+</footer>
+
+</body>
+</html>
