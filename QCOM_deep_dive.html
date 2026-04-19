@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qualcomm (QCOM) — Peter Lynch Financial & SBC Impact Screener Deep-Dive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:180px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}.trend-down{color:var(--red);font-weight:600}
+  .anomaly{color:var(--accent);font-weight:700}.na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}.cell-good{background:#e8f5e9}.cell-warn{background:#fff8e1}.cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}.dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}.dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}.card.invert{border-left-color:var(--gold)}.card.golden{border-left-color:var(--green)}.card.management{border-left-color:var(--teal)}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}.card h4.gold{color:var(--gold)}.card h4.teal{color:var(--teal)}.card h4.green{color:var(--green)}
+  .card p,.card li{font-size:13px;line-height:1.7}.card ul{padding-left:18px}.card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}.badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}.badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}.cat-fast{background:#f3e5f5;color:#6a1b9a}.cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px}
+  .stat-box{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center}.stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>Qualcomm Incorporated</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: QCOM · NASDAQ</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>17 April 2026</span></div>
+    <div class="meta-item">Price: <span>~$133 (close 15 Apr 2026)</span></div>
+    <div class="meta-item">Market Cap: <span>~$142B</span></div>
+    <div class="meta-item">Category: <span><span class="category-badge cat-stalwart">Stalwart (Cyclical)</span></span></div>
+    <div class="meta-item">HQ: <span>San Diego, CA, USA</span></div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">FY25 Revenue</div>
+    <div class="stat-val">$44.3B</div>
+    <div class="stat-sub">+14% YoY</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FY25 FCF</div>
+    <div class="stat-val">$12.8B</div>
+    <div class="stat-sub">29.0% FCF margin</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Fwd P/E</div>
+    <div class="stat-val">~12x</div>
+    <div class="stat-sub">vs Semi avg ~28x</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">GAAP Op Margin</div>
+    <div class="stat-val">28.0%</div>
+    <div class="stat-sub">vs 24.1% in FY23</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">SBC % Rev</div>
+    <div class="stat-val">6.3%</div>
+    <div class="stat-sub">$2.78B FY25</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>① 5-Year Financial Trend</h2>
+<!-- ============================================================ -->
+
+<p style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#e8f5e9;border:1px solid #c8e6c9;padding:10px 14px;margin-bottom:16px;color:#1a5c1a;">
+  <strong>Latest completed FY confirmed: FY2025 (fiscal year ended September 28, 2025)</strong><br>
+  Source: Qualcomm Q4 FY25 Earnings Press Release, November 5, 2025 — <a href="https://investor.qualcomm.com/" style="color:#1a5c1a;">investor.qualcomm.com</a><br>
+  FY = Oct 1 – Late Sep. Year 1 = FY2021 | Year 2 = FY2022 | Year 3 = FY2023 | Year 4 = FY2024 | Year 5 = FY2025
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>FY2021<br><small>Y1</small></th>
+      <th>FY2022<br><small>Y2</small></th>
+      <th>FY2023<br><small>Y3</small></th>
+      <th>FY2024<br><small>Y4</small></th>
+      <th>FY2025<br><small>Y5 (Latest)</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Revenue (USD bn)</td>
+      <td>$33.57</td>
+      <td class="trend-up">$44.20</td>
+      <td class="trend-down">$35.82</td>
+      <td class="trend-up">$38.96</td>
+      <td class="trend-up">$44.28</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth %</td>
+      <td class="trend-up">+43%</td>
+      <td class="trend-up">+32%</td>
+      <td class="anomaly">–19% ⚡</td>
+      <td class="trend-up">+9%</td>
+      <td class="trend-up">+14%</td>
+    </tr>
+    <tr>
+      <td class="row-label">QCT Automotive Revenue (USD bn)</td>
+      <td>$0.98</td>
+      <td class="trend-up">$1.37</td>
+      <td class="trend-up">$1.87</td>
+      <td class="trend-up">$2.87</td>
+      <td class="trend-up">$3.47 (+21%)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Gross Margin %</td>
+      <td>57.5%</td>
+      <td>57.8%</td>
+      <td class="trend-down">55.7%</td>
+      <td>56.2%</td>
+      <td class="trend-down">55.4%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Margin %</td>
+      <td class="trend-up">29.2%</td>
+      <td class="trend-up">35.9%</td>
+      <td class="anomaly">24.1% ⚡</td>
+      <td class="trend-up">26.3%</td>
+      <td class="trend-up">28.0%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF (OCF – Capex, USD bn)</td>
+      <td>$8.65</td>
+      <td class="trend-down">$6.83</td>
+      <td class="trend-up">$9.85</td>
+      <td class="trend-up">$11.16</td>
+      <td class="trend-up">$12.82</td>
+    </tr>
+    <tr>
+      <td class="row-label">Operating Cash Flow (USD bn)</td>
+      <td>$10.54</td>
+      <td class="trend-down">$9.10</td>
+      <td class="trend-up">$11.30</td>
+      <td class="trend-up">$12.20</td>
+      <td class="trend-up">$14.01</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="trend-up">~22%</td>
+      <td class="trend-up">~31%</td>
+      <td class="trend-down">~16%</td>
+      <td class="trend-up">~20%</td>
+      <td class="trend-up">~20%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend per Share (USD)</td>
+      <td>$2.72</td>
+      <td class="trend-up">$2.92</td>
+      <td class="trend-up">$3.12</td>
+      <td class="trend-up">$3.28</td>
+      <td class="trend-up">$3.52</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Growth %</td>
+      <td class="trend-up">+5%</td>
+      <td class="trend-up">+7%</td>
+      <td class="trend-up">+7%</td>
+      <td class="trend-up">+5%</td>
+      <td class="trend-up">+7%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Yield %</td>
+      <td>~1.7%</td>
+      <td>~2.3%</td>
+      <td>~2.6%</td>
+      <td>~2.0%</td>
+      <td>~2.7%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E (current only)</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="trend-up">~12x (Fwd)</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio (current only)</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="trend-down">2.70</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity %</td>
+      <td>~75%</td>
+      <td>~95%</td>
+      <td>~60%</td>
+      <td>~55%</td>
+      <td>~64%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td>~4.4%</td>
+      <td>~4.7%</td>
+      <td>~7.4%</td>
+      <td>~5.5%</td>
+      <td class="trend-up">~9.0% (at $133)</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC as % of Revenue</td>
+      <td>5.0%</td>
+      <td class="trend-up">4.6%</td>
+      <td class="trend-down">6.9%</td>
+      <td class="trend-up">6.8%</td>
+      <td class="trend-up">6.3%</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  ⚡ ANOMALY FLAGS — FY2023: Revenue fell –19% and GAAP Op Margin contracted from 35.9% to 24.1% due to a severe cyclical downturn in the global smartphone market. Channel inventory correction post-COVID overbuild drove volumes down sharply. QCT handset revenue dropped ~$8B YoY. This was a cyclical trough, not a structural impairment — FY2024 and FY2025 fully recovered revenue to prior peak. FCF also declined –21% in FY2022 (a BREACH year) due to a $3.1B inventory build and elevated capex ($2.3B).<br><br>
+  SOURCES: Revenue / Gross Margin / Op Margin — Yahoo Finance (from SEC 10-K filings); FCF/OCF — Yahoo Finance Cash Flow Statements + Qualcomm IR Press Releases FY21–FY25 (Tier 4); SBC — SEC 8-K filings (Tier 1: FY25 $2,783M, FY24 $2,648M, FY23 $2,484M, FY22 $2,031M, FY21 $1,663M); ROIC — stockanalysis.com (Tier 1, 19.74% current); FCF Yield — computed from market cap (~$142B Apr 15 2026) / FY25 FCF $12.82B; Fwd P/E / PEG — stockanalysis.com/stocks/qcom/statistics/ (Tier 1); Dividend — Qualcomm IR (Tier 4). QCT Automotive — SEC filings / Qualcomm IR.
+</div>
+
+<div class="card management">
+  <h4 class="teal">Note on Revenue Cyclicality</h4>
+  <p>Qualcomm is a deeply cyclical semiconductor business driven primarily by smartphone volumes (~60% of QCT revenue). FY2022 revenues of $44.2B reflected the COVID-driven smartphone supercycle. FY2023's –19% decline was driven by: (1) global smartphone unit shipments declining ~4%, (2) major OEM channel inventory correction, particularly in China (Xiaomi, OPPO, Vivo), (3) Huawei sanctions reducing an important customer to near-zero. FY2025's recovery to $44.3B represents a full roundtrip back to the FY2022 peak, driven by (a) 5G upgrade cycle maturing globally, (b) premium Snapdragon 8 Elite platform wins at Samsung and Chinese OEMs, (c) QCT Automotive growing at 20%+ annually, and (d) IoT recovery. The GAAP vs Non-GAAP EPS gap in FY2025 is extreme: GAAP EPS $5.01 vs Non-GAAP EPS $12.03 — the $7.02 gap is primarily driven by a $7.1B tax provision related to Section 174 R&D capitalisation rules under US tax law, which is a timing difference, not an operational issue.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>② Lynch Screener — Competitor Benchmark</h2>
+<!-- ============================================================ -->
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>QCOM<br><small>Qualcomm</small></th>
+      <th>AVGO<br><small>Broadcom</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Category (Lynch)</td>
+      <td class="cell-good">✅ Stalwart (Cyclical)</td>
+      <td class="cell-trophy">🏆 Fast Grower (Acquirer)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth (Latest FY)</td>
+      <td class="cell-good">✅ +14% (FY25 Sep'25)</td>
+      <td class="cell-trophy">🏆 +25% (FY25 Nov'25)</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="cell-good">✅ ~20% (well above WACC)</td>
+      <td class="cell-good">✅ ~21% (above WACC)</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Op Margin %</td>
+      <td class="cell-good">✅ 28.0%</td>
+      <td class="cell-trophy">🏆 ~36%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP vs Non-GAAP Gap (pts)</td>
+      <td class="cell-warn">⚠️ ~12 pts (Non-GAAP ~40% vs GAAP 28%)</td>
+      <td class="cell-bad">❌ ~28 pts (68% adj. EBITDA vs ~36% GAAP; massive amort.)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Fwd P/E</td>
+      <td class="cell-trophy">🏆 ~12x (deep discount to sector)</td>
+      <td class="cell-warn">⚠️ ~28x (premium valuation)</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio</td>
+      <td class="cell-warn">⚠️ 2.70 (elevated — EPS compressed by Sec. 174 tax)</td>
+      <td class="cell-trophy">🏆 0.68 (very attractive)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity %</td>
+      <td class="cell-good">✅ ~64% (manageable)</td>
+      <td class="cell-warn">⚠️ ~83% ($51.9B net debt — VMware acquisition debt)</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td class="cell-trophy">🏆 ~9.0% (at $133)</td>
+      <td class="cell-warn">⚠️ ~1.6% (at ~$393)</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC % of Revenue</td>
+      <td class="cell-good">✅ 6.3% — moderate, declining</td>
+      <td class="cell-warn">⚠️ ~12% — elevated post-VMware</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Quality</td>
+      <td class="cell-good">✅ High — FCF/OCF ~92%; capex $1.2B only</td>
+      <td class="cell-trophy">🏆 Excellent — capex-light ($773M); FCF $28.9B TTM</td>
+    </tr>
+    <tr>
+      <td class="row-label">Buyback Efficiency</td>
+      <td class="cell-trophy">🏆 $8.8B repurchased FY25; $20B new authorisation Mar 2026; net anti-dilutive</td>
+      <td class="cell-warn">⚠️ Buybacks limited; priorities are debt paydown + dividend growth post-VMware</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  SOURCES: QCOM — stockanalysis.com/stocks/qcom/statistics/ (Tier 1); Qualcomm IR FY25 Press Release Nov 2025 (Tier 4); SEC 8-K FY2025 (Tier 1). AVGO — stockanalysis.com/stocks/avgo/statistics/ (Tier 1): Fwd PE 28.14, PEG 0.68, ROIC 21.33%, net debt $51.88B, FCF $28.91B TTM, D/E 0.83. AVGO market cap ~$1.80T. AVGO gross margin 67.77%, operating margin ~36% GAAP (stock-analysis-on.net, companiesmarketcap.com). QCOM Fwd PE ~12x, PEG 2.70 (stockanalysis.com); QCOM net debt $3.0B (stockanalysis.com). Note: QCOM PEG of 2.70 is distorted by GAAP EPS collapse in FY2025 from $8.97 (FY24) to $5.01 (FY25) caused by Section 174 R&D capitalisation tax — Non-GAAP EPS grew from $10.22 to $12.03 (+18%). On Non-GAAP EPS, implied PEG would be ~0.7.
+</div>
+
+<!-- ============================================================ -->
+<h2>③ DCF Analyst — Table 2 Mode B</h2>
+<!-- ============================================================ -->
+
+<div class="card management">
+  <h4 class="teal">Pre-Model Audit — Step A: FCF Trend & Breach Assessment</h4>
+  <p><strong>5-Year Reported FCF History (GAAP, as filed):</strong></p>
+  <ul style="margin-top:8px;">
+    <li><strong>FY2021</strong> (ended Sep 26 2021): $8.65B — Source: SEC 10-K / Yahoo Finance <span class="badge badge-green">Healthy Growth</span></li>
+    <li><strong>FY2022</strong> (ended Sep 25 2022): $6.83B — YoY –$1.82B (–21.0%) — Source: SEC 10-K <span class="badge badge-red">Breach</span> (FCF declined >10%. Cause: OCF fell from $10.5B to $9.1B due to $3.1B inventory build; capex rose to $2.3B for new San Diego HQ and test facilities)</li>
+    <li><strong>FY2023</strong> (ended Sep 24 2023): $9.85B — YoY +$3.02B (+44.2%) — Source: Yahoo Finance / Macrotrends <span class="badge badge-green">Healthy Growth</span> (Recovery: inventory unwound, capex normalised to $1.5B)</li>
+    <li><strong>FY2024</strong> (ended Sep 29 2024): $11.16B — YoY +$1.31B (+13.3%) — Source: Macrotrends / Qualcomm IR <span class="badge badge-green">Healthy Growth</span></li>
+    <li><strong>FY2025</strong> (ended Sep 28 2025): $12.82B — YoY +$1.66B (+14.9%) — Source: Qualcomm FY25 Q4 Press Release (Nov 5 2025) <span class="badge badge-green">Healthy Growth</span></li>
+  </ul>
+  <p style="margin-top:10px;"><strong>Breach Assessment:</strong> ONE breach year (FY2022). Cause was clearly one-off in nature: massive inventory build ($3.1B) during the post-COVID supply chain whiplash + elevated capex for campus construction. FCF fully recovered in FY2023 and exceeded the pre-breach FY2021 level. <strong>Verdict: MODERATE VOLATILITY</strong> <span class="badge badge-yellow">Moderate Volatility</span></p>
+  <p style="margin-top:8px;"><strong>FCF Growth Calibration:</strong> FCF 5-year CAGR (FY21→FY25) ≈ +10.3%. Revenue 5-year CAGR ≈ +5.7% (depressed by the FY23 cyclical trough; excluding FY23 nadir, revenue CAGR FY21→FY25 reflects return to FY22 peak). FCF has grown faster than revenue, reflecting: (1) capex normalisation from $2.3B to $1.2B; (2) working capital efficiency post-inventory correction. Future DCF scenario growth rates are anchored to the revenue growth trend (~8–14% range).</p>
+</div>
+
+<div class="card management">
+  <h4 class="teal">Pre-Model Audit — Step B: FCF Base Normalisation</h4>
+  <p><strong>Most Recent Full-Year Reported FCF (FY2025):</strong> $12.82B (OCF $14.01B – Capex $1.19B). Source: Qualcomm FY25 Q4 Press Release / Yahoo Finance.</p>
+  <p style="margin-top:8px;"><strong>One-time items examined:</strong></p>
+  <ul style="margin-top:6px;">
+    <li><strong>Section 174 R&D Capitalisation Tax Impact:</strong> FY2025 income tax provision was $7.12B — an extreme effective rate of ~57%. This is a GAAP P&L item that affects net income but OCF/FCF are less directly impacted because the large tax payments are partially offset by timing differences in cash vs accrued taxes. Cash tax payments in FY2025 were lower than the accrued provision. Direction: <em>Neutral on FCF; depresses GAAP net income significantly.</em></li>
+    <li><strong>CapEx vs 3-Year Average:</strong> FY2025 capex = $1.19B. FY2024 = $1.04B, FY2023 = $1.45B. 3-year avg ~$1.23B. FY2025 capex is in line with average — no abnormal depressant.</li>
+    <li><strong>Alpha Wave SEMI Acquisition:</strong> QCOM acquired Alpha Wave SEMI in early FY2026 (announced Q1 FY2026). No impact on FY2025 FCF.</li>
+    <li><strong>Share Repurchases:</strong> $8.79B in FY2025 repurchases flow through financing activities, not OCF/FCF. No impact on FCF base.</li>
+  </ul>
+  <p style="margin-top:10px;"><strong>Conclusion:</strong> No material one-time items depressing FY2025 FCF. <strong>No normalisation required — reported FCF of $12.82B used as DCF anchor.</strong></p>
+  <p style="margin-top:6px;"><strong>Reported FCF:</strong> $12.82B | <strong>Normalised FCF:</strong> $12.82B (no adjustment required)</p>
+</div>
+
+<div class="card management">
+  <h4 class="teal">Pre-Model Audit — Step C: FCF / NOPAT Ratio Check</h4>
+  <p><strong>GAAP Operating Income FY25:</strong> $12.39B (Revenue $44.28B × 28.0% GAAP op margin)</p>
+  <p style="margin-top:6px;"><strong>Effective Tax Rate:</strong> FY2025 tax provision was $7.12B / $12.66B pretax = ~56.3%. However, this is distorted by Section 174. Using the normalised cash effective tax rate from prior years (~14–16%), we use 15% for NOPAT purposes.</p>
+  <p style="margin-top:6px;"><strong>NOPAT</strong> = $12.39B × (1 – 0.15) = $12.39B × 0.85 = <strong>$10.53B</strong></p>
+  <p style="margin-top:6px;"><strong>FCF / NOPAT</strong> = $12.82B / $10.53B = <strong>122%</strong> <span class="badge badge-yellow">Slightly Above 100% — Explained</span></p>
+  <p style="margin-top:8px;"><strong>Explanation:</strong> FCF exceeding NOPAT by 22% is driven by: (1) SBC add-back of $2.78B — a non-cash charge that depresses GAAP operating income but adds back in OCF; (2) Depreciation/amortisation ($1.60B) exceeding maintenance capex ($1.19B), generating a ~$400M positive delta; (3) Qualcomm's licensing business (QTL) collects cash upfront on multi-year patent agreements, creating a small deferred revenue float. The ratio is within normal range for a semi + licensing hybrid model. DCF anchor remains $12.82B reported FCF.</p>
+</div>
+
+<div class="dcf-inputs">
+  <strong>DCF Model Inputs — Qualcomm (QCOM) | As of 17 April 2026</strong><br><br>
+  <strong>Reported FCF (FY25):</strong> $12,820M (source: Qualcomm FY25 Q4 Press Release, Nov 5 2025 / Yahoo Finance)<br>
+  <strong>Normalised FCF:</strong> $12,820M (no adjustment required — reported FCF used as anchor)<br>
+  <strong>FCF / NOPAT Ratio:</strong> 122% — within normal range; explained by SBC addback + D&A > capex structure<br>
+  <strong>Net Debt / (Cash) per Share:</strong> Net debt = –$3.00B (cash $11.82B less debt $14.82B); per share = –$2.81/share (source: stockanalysis.com/stocks/qcom/statistics/ Tier 1)<br>
+  <strong>Shares Outstanding:</strong> 1,067M<br>
+  <strong>Current Stock Price:</strong> ~$133 (April 15, 2026)<br>
+  <strong>Sector Cap (Tech/SaaS — Semiconductor):</strong> Bull Y1–3 growth capped at 30% | Terminal g = 3%<br>
+  <strong>Q2 FY26 Revenue Guidance:</strong> $10.2B–$11.0B (Feb 4, 2026 — lower than consensus $11.1B; memory supply constraints cited)<br>
+  <strong>5-Year Revenue CAGR (FY21–FY25):</strong> ~5.7% (depressed by FY23 cyclical trough); FY23→FY25 CAGR: ~11%<br>
+  <strong>Revenue growth scenarios anchored to top-line trend per FCF Growth Calibration Rule</strong><br>
+  <strong>Bear:</strong> Y1–3 FCF growth at 5% (reflects handset stagnation + Apple modem loss scenario). Below management implied OCF growth. True stress test.<br>
+  <strong>Base-Low:</strong> 8% FCF growth Y1–3 (discount to recent trend; assumes QCT Handsets flat, Auto + IoT grow mid-teens)<br>
+  <strong>Base:</strong> 11% FCF growth Y1–3 (aligned with FY23→FY25 revenue CAGR; Auto + IoT + DC accelerate; Handsets stable)<br>
+  <strong>Bull:</strong> 15% FCF growth Y1–3 (full execution of FY29 Investor Day targets; Automotive to $9B+; IoT/Edge AI ramp; Arm PC wins)
+</div>
+
+<div class="table-wrap">
+<table class="dcf-table">
+  <thead>
+    <tr>
+      <th class="row-head">Discount Rate (r)</th>
+      <th>🐻 Bear<br><small>FCF Y1–3: +5% | Y4–7: +4% | Y8–10: +3%</small></th>
+      <th>📉 Base-Low<br><small>FCF Y1–3: +8% | Y4–7: +6% | Y8–10: +4%</small></th>
+      <th>📊 Base<br><small>FCF Y1–3: +11% | Y4–7: +8% | Y8–10: +4%</small></th>
+      <th>🚀 Bull<br><small>FCF Y1–3: +15% | Y4–7: +10% | Y8–10: +5%</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">r = 8%</td>
+      <td class="dcf-green">🟢 $164<br><small>+23% vs $133</small></td>
+      <td class="dcf-green">🟢 $195<br><small>+47% vs $133</small></td>
+      <td class="dcf-green">🟢 $232<br><small>+74% vs $133</small></td>
+      <td class="dcf-green">🟢 $287<br><small>+116% vs $133</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 9%</td>
+      <td class="dcf-green">🟢 $144<br><small>+8% vs $133</small></td>
+      <td class="dcf-green">🟢 $170<br><small>+28% vs $133</small></td>
+      <td class="dcf-green">🟢 $201<br><small>+51% vs $133</small></td>
+      <td class="dcf-green">🟢 $248<br><small>+86% vs $133</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 10%</td>
+      <td class="dcf-yellow">🟡 $127<br><small>–5% vs $133</small></td>
+      <td class="dcf-green">🟢 $149<br><small>+12% vs $133</small></td>
+      <td class="dcf-green">🟢 $175<br><small>+32% vs $133</small></td>
+      <td class="dcf-green">🟢 $215<br><small>+62% vs $133</small></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;background:#e3f2fd;border:1px solid #90caf9;padding:10px 14px;margin:10px 0;color:#1565c0;">
+  ⚠️ BEAR SCENARIO NOTE: Bear Y1–3 FCF growth of 5% assumes worst-case combination of (1) Apple fully insourcing modem by FY27–28 (–$7–8B QCT revenue risk over 3 years), (2) handset volumes flat, and (3) Automotive/IoT growth decelerating to low teens. At r=10%, Bear implies intrinsic value of ~$127 — below current price. This is a genuine stress test. However, even in Bear, QCOM generates ~$13B+ annual FCF and can buy back 8–10% of its market cap annually at current prices.
+</p>
+
+<div class="note">
+  All intrinsic values include net debt adjustment: –$2.81/share subtracted from DCF equity value. Terminal growth rate = 3.0%. FCF growth in Bull scenario assumes successful diversification per Qualcomm's FY2029 Investor Day targets ($22B non-handset QCT revenue by FY29 vs ~$10B in FY25); 15% Y1–3 is achievable if Auto, IoT, and Edge AI grow 25%+ while handsets grow mid-single-digits. Sensitivity: Using a normalised tax rate of 15% (vs GAAP 56%) for NOPAT calculation does not affect the DCF anchor, which uses reported FCF ($12.82B) directly.
+</div>
+
+<!-- ============================================================ -->
+<h2>④ Management Commentary</h2>
+<!-- ============================================================ -->
+
+<div class="card management">
+  <h4 class="teal">Q1 FY2026 Earnings Call — Management Tone & Key Quotes (Feb 4, 2026)</h4>
+  <p><strong>Overall Tone:</strong> Confident on diversification strategy and Snapdragon platform momentum, but pragmatic about near-term memory supply constraints affecting handset production volumes. CEO Amon emphasised the edge AI opportunity and data centre expansion.</p>
+  <p style="margin-top:10px;"><strong>Cristiano Amon (CEO):</strong> Highlighted record Q1 FY26 revenues of $12.3B (+5% YoY) and record QCT revenues of $10.6B. Emphasised that non-Apple QCT revenues grew 18% YoY in FY25 and combined Automotive + IoT revenues grew 27%. On the Q2 guidance shortfall vs consensus: the issue was described as entirely memory-related and not demand-driven. Amon stated Qualcomm is committed to the FY2029 target of $22B in non-handset revenues.</p>
+  <p style="margin-top:10px;"><strong>Akash Palkhiwala (CFO & COO):</strong> Guided Q2 FY26 revenue of $10.2–11.0B (below $11.1B consensus). Non-GAAP EPS guidance of $2.45–$2.65 vs $2.66 consensus. Automotive revenue expected to grow 35%+ YoY in Q2. Highlighted $3.6B returned to shareholders in Q1 via buybacks + dividends.</p>
+  <p style="margin-top:10px;"><strong>Key Strategic Metrics:</strong> $20B new share buyback authorisation (announced Mar 2026). Quarterly dividend increased from $0.89 to $0.92/share (Mar 2026). Automotive design win pipeline exceeded $65B. Snapdragon X Elite PC platform shipping at Samsung, Lenovo, Dell. Data centre Oryon CPU programme in development.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Analyst Reaction &amp; Market Concerns — Post-Q1 FY26</h4>
+  <p><strong>Initial Stock Move:</strong> QCOM rose +0.36% after-hours on Q1 beat ($3.50 vs $3.38 consensus), but Q2 guidance miss weighed on sentiment. Year-to-date (as of Apr 15 2026), QCOM is down ~24% from Jan 2026 highs, and –36% from the 52-week high of $206.</p>
+  <p style="margin-top:8px;"><strong>Consensus Target:</strong> ~$155 (Investing.com average of analyst targets as of April 2026) — implying ~17% upside from $133. Range: $100 (Wells Fargo, Underweight) to $200 (high end). Consensus rating: Neutral/Hold (divided: 11 Buy, 3 Sell per Investing.com).</p>
+  <p style="margin-top:8px;"><strong>Top Analyst Concerns:</strong></p>
+  <ul>
+    <li><strong>Apple Modem Insourcing:</strong> Apple's custom 5G modem (first deployed in iPhone SE 4, expected to expand across iPhone lineup by 2027–28) could eliminate $7–8B in annual QCT Handset revenue. This is the single largest bear-case risk. Bernstein downgraded to Market Perform citing this risk (Mar 2026).</li>
+    <li><strong>Memory supply constraints suppressing handset production:</strong> AI data centre demand is diverting DRAM/NAND supply from handset OEMs, reducing smartphone builds in Q2 FY26. QCOM guided below consensus as a direct result.</li>
+    <li><strong>Tariff and geopolitical risk:</strong> ~60%+ of QCOM revenue is China/Asia-linked. Escalating US-China semiconductor restrictions could disrupt the customer base (Xiaomi, OPPO, Vivo). QCOM derives ~$15B+ from Chinese OEMs.</li>
+    <li><strong>Valuation trap concern:</strong> QCOM has been "cheap" (12–15x Fwd PE) for years. Bears argue this is the market correctly pricing in structural Apple loss + limited AI tailwind (unlike Broadcom/NVIDIA).</li>
+    <li><strong>Goldman Sachs initiated at Neutral (Mar 2026):</strong> Cited limited near-term catalysts and Apple modem overhang.</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<h2>⑤ Red Flags — Six-Point Lynch Audit</h2>
+<!-- ============================================================ -->
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 1 — Margins Compressing</h4>
+  <p><strong>Status: WATCH ⚠️</strong> — Gross margin has been on a gradual secular decline: 57.8% (FY22) → 55.4% (FY25). This reflects the increasing mix shift toward lower-margin QCT hardware (Automotive, IoT) and away from high-margin QTL licensing. QTL revenues have been flat-to-down ($6.4B FY22 → ~$5.8B FY25) while QCT has grown — structurally compressing the blended margin. GAAP operating margin recovered from the FY23 trough (24.1%) to 28.0% (FY25) but remains below the FY22 peak of 35.9%. <strong>Gradual gross margin erosion is a structural trend to watch — it is not driven by competitive displacement but by deliberate mix shift into Automotive/IoT which carry lower chip ASPs.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 2 — Volume / User Declining</h4>
+  <p><strong>Status: NOT PRESENT</strong> — QCT total revenues recovered to a record in FY2025. Automotive revenues are on a 5-year streak of record quarters. IoT revenues recovered from the FY23 trough. Handset volumes are stable-to-growing, with the key risk being Apple insourcing (addressable base reduction, not volume decline per se). Non-Apple QCT handset revenues grew 18% YoY in FY2025, demonstrating QCOM's share gains at Samsung and Chinese OEMs with Snapdragon 8 Elite. <strong>Watch: Apple modem insourcing will reduce addressable handset volume starting FY2027 — this is a structural, not cyclical, volume decline in one customer.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 3 — FCF Volatile</h4>
+  <p><strong>Status: CONFIRMED — MODERATE ⚠️</strong> — FY2022 was a clear breach year (–21% FCF decline) driven by inventory build + elevated capex. However, FCF recovered fully by FY2023 (+44%) and has grown consecutively since. The 5-year FCF trajectory shows a cyclical dip and recovery: $8.7B → $6.8B → $9.9B → $11.2B → $12.8B. FCF volatility is inherent in the semiconductor cycle — QCOM's FCF is structurally tied to smartphone production volumes, which are cyclical. <strong>The FY2022 breach was clearly one-off (inventory correction + HQ capex). Post-FY22, FCF has been on a healthy growth trajectory (+13–15% annually). Moderate volatility — not structural.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 4 — Capex &gt;70% of Operating Cash Flow</h4>
+  <p><strong>Status: NOT PRESENT</strong> — FY2025 Capex = $1.19B / OCF = $14.01B = <strong>8.5% capex/OCF ratio</strong> — very capital-light for a semiconductor company. QCOM is a fabless chipmaker — TSMC manufactures all its chips. Capex is primarily for R&D facilities, test equipment, and corporate campus. The 3-year average capex/OCF ratio is ~10%. Even in the elevated FY2022 (new HQ construction), capex/OCF was only 25%. <strong>Fabless model keeps capital intensity structurally low. No red flag.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 5 — Debt Growing in Downturn</h4>
+  <p><strong>Status: NOT PRESENT</strong> — Net debt is modest at $3.0B ($11.8B cash vs $14.8B debt). Debt/Equity of 0.64 is manageable. QCOM did not increase debt during the FY2023 downturn — instead, it reduced share repurchases ($4.1B in FY23 vs $8.8B in FY25) and maintained the dividend. Net debt has actually remained stable-to-improving over the 5-year period. The $20B buyback authorisation (Mar 2026) will be funded from FCF, not debt issuance — management has stated no intent to lever up. <strong>Fortress balance sheet relative to peers. No red flag.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 6 — Management Using Uncertainty / Headwinds Language</h4>
+  <p><strong>Status: CONFIRMED — PRESENT ⚠️</strong> — Management explicitly cited "memory supply constraints" as the reason for Q2 FY26 guidance miss. CEO Amon was transparent that handset production volumes are being reduced industry-wide due to DRAM allocation to AI data centres. Additionally, Amon's language on Apple — "We plan for the different scenarios" — was notably hedged. The company has not publicly quantified the Apple modem revenue loss timeline, creating a strategic ambiguity that concerns analysts. CFO Palkhiwala's Q2 guidance range ($10.2–11.0B, a $800M spread) was unusually wide, signalling near-term visibility is limited. <strong>Management is transparent about memory issues but deliberately vague on Apple modem insourcing — the biggest structural risk.</strong></p>
+</div>
+
+<!-- ============================================================ -->
+<h2>⑥ Invert — Charlie Munger Style</h2>
+<!-- ============================================================ -->
+
+<div class="card invert">
+  <h4 class="gold">Why This Could Be a Bad Long-Term Investment</h4>
+  <p>Qualcomm's two foundational revenue pillars are both under structural threat. <strong>Pillar 1 — QCT Handsets (~55% of revenue):</strong> Apple is insourcing its baseband modem. If successful, QCOM loses its single largest customer (~$7–8B/year). Samsung has historically developed its own Exynos modems and may reduce QCOM reliance over time. Huawei — once a top-3 customer — is essentially lost to sanctions. MediaTek continues gaining share in mid-range. <strong>Pillar 2 — QTL Licensing (~14% of revenue, ~30% of profits):</strong> Every new patent licensing agreement is a negotiation battle. Chinese OEMs have historically resisted QTL royalty rates. If 5G patent pools dilute QCOM's share of essential patents, QTL could face secular margin pressure. The stock has traded at a "cheap" multiple for 5+ years — the market may be correctly pricing in a structurally shrinking addressable market rather than offering a "value" opportunity.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">What Could Invalidate the Bull Thesis Despite Good Financials</h4>
+  <p>Even if FY2025 financials are strong (28% GAAP margins, $12.8B FCF, 20% ROIC), several scenarios would make current price a ceiling rather than a floor: (1) Apple's modem works well and expands to all iPhones by 2028 — this alone could reduce QCOM revenue by 15–18% at the QCT level. (2) Qualcomm's Automotive revenue, while growing impressively ($3.5B FY25), may not scale fast enough to offset handset losses — the company needs Auto to reach $9B+ by FY29, which requires 25%+ CAGR sustained for 4 years in a capital-intensive, slow-design-win industry. (3) The Snapdragon X Elite PC platform faces dominant incumbents (Intel, AMD) with decades of x86 software ecosystem advantage — Arm PCs remain niche (~10% market share). (4) QCOM's AI narrative ("Edge AI") is less compelling to investors than Broadcom/NVIDIA's data centre AI story, explaining the persistent valuation discount.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Assumptions That Must Go Right for This to Succeed</h4>
+  <p>The DCF Base scenario at $201 (r=9%) requires: (1) Apple modem transition is gradual — QCOM retains meaningful Apple revenue through FY2027 and loses it slowly over 2–3 years, not abruptly. (2) QCT Automotive scales from $3.5B (FY25) to $7B+ by FY29, implying the Snapdragon Digital Chassis and ADAS/AD stack win volume production contracts at GM, Stellantis, and others beyond existing wins. (3) Non-handset QCT revenue doubles from ~$10B to $22B by FY29 as per Investor Day targets. (4) QTL licensing revenue stabilises at $5.5–6.0B/year — no major renegotiations or adverse patent rulings. (5) Share buybacks continue at $8–10B/year, reducing share count 5–7% annually at current prices, providing EPS accretion even if top-line growth moderates. All five must broadly go right. Apple modem failure alone could push intrinsic value toward Bear/r=10% territory (~$127).</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Structural Weaknesses — The Munger Pre-Mortem</h4>
+  <p><strong>1. Customer concentration death trap:</strong> Apple (~20% of revenue) and Samsung (~15% est.) together represent ~35% of revenue. Losing either customer would be catastrophic. Both are developing in-house chip capabilities. <strong>2. Fabless dependency:</strong> QCOM depends entirely on TSMC for leading-edge chip manufacturing. Any TSMC disruption (geopolitical, earthquake, capacity allocation favouring Apple/NVIDIA) directly impacts QCOM's ability to deliver. QCOM has zero fab optionality. <strong>3. China regulatory risk:</strong> QCOM derives 60%+ of revenue from China. Previous Chinese antitrust actions forced $975M in fines (2015) and royalty rate reductions. Escalating US-China tensions could trigger retaliatory regulatory action against QCOM's licensing business in China. <strong>4. Innovation treadmill:</strong> Unlike Broadcom (which grows via acquisition and switching-cost moats), QCOM must win each smartphone design cycle against MediaTek, Samsung Exynos, and now Apple's in-house silicon. There is no recurring SaaS-like revenue stream in QCT — each year's revenue must be re-earned.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>⑦ Golden Tips — Lynch Analyst Watchlist</h2>
+<!-- ============================================================ -->
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 1 — GAAP vs Non-GAAP: The Section 174 Tax Distortion You Must Understand</h4>
+  <p>Qualcomm's FY2025 GAAP EPS was $5.01 vs Non-GAAP EPS of $12.03 — a staggering $7.02 gap (58% discount). The primary driver is NOT SBC or acquisition charges — it is the US Section 174 R&D capitalisation tax rule, which requires companies to capitalise and amortise R&D expenses over 5 years (15 for foreign) for tax purposes, rather than deducting them immediately. This caused QCOM's FY2025 tax provision to balloon to $7.12B on $12.66B pretax income (56% effective rate). The critical insight: this is a <em>timing</em> difference — cash taxes paid were substantially lower because QCOM is still amortising prior-year R&D. Peter Lynch would say: ignore the GAAP EPS headline, focus on FCF and OCF, which are unaffected. QCOM's FCF of $12.82B and OCF of $14.01B grew 15% and 15% YoY respectively — the real operating performance is strong. The GAAP PE of ~26x is misleading; the Non-GAAP forward PE of ~12x reflects true economic earnings power.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 2 — FCF vs Net Income: FCF Is the Only Reliable Scorecard Here</h4>
+  <p>GAAP Net Income in FY2025 was $5.54B — but FCF was $12.82B, more than 2.3x larger. The divergence is structural and permanent: (1) SBC of $2.78B is a GAAP expense that reduces net income but adds back in the cash flow statement; (2) the Section 174 tax provision created a $4–5B gap between GAAP tax expense and actual cash taxes paid; (3) D&A of $1.60B exceeds capex of $1.19B. For Lynch analysis, FCF is the only anchor that reflects QCOM's true cash-generating ability. The FCF yield of ~9.0% at $133/share is near the highest in Qualcomm's modern history — matching the trough-valuation levels of FY2023 when the stock was pricing in the cyclical downturn. The $20B buyback at these FCF yields is mathematically accretive: buying back shares at 9% FCF yield is equivalent to investing at a 9% return — superior to most capital allocation alternatives.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 3 — Revenue Up, Margins Down: The Gross Margin Erosion Signal</h4>
+  <p>Unlike Salesforce (where margins expanded dramatically), Qualcomm presents the opposite pattern: revenue recovered to FY22 peaks in FY25, but gross margins are lower (55.4% vs 57.8%). This is a classic Lynch warning sign — revenue up, margins down. However, the cause is deliberate and potentially positive: QCOM is shifting its revenue mix toward Automotive (+21% YoY to $3.5B) and IoT (+17%), which carry lower initial margins than Handsets but have higher long-term margin potential as volumes scale. Automotive chips carry ~35–40% initial margins that expand to 50%+ at scale (vs Handset ~45–50%). The margin compression is a <em>mix effect</em>, not a pricing or competitive erosion. If Automotive margins expand as volume scales (typical in automotive semis with 5–7 year design win cycles), blended margins should stabilise by FY2028–29. Watch: if gross margin breaks below 54% without offsetting revenue growth, the mix shift thesis fails.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 4 — Capex Pattern: The Fabless Advantage and Its Limits</h4>
+  <p>Qualcomm's FY2025 capex of $1.19B on $14.01B of OCF represents an 8.5% capex-to-OCF ratio — among the lightest in all large-cap semiconductors. Compare to Broadcom ($773M capex, but offset by $52B net debt from the VMware acquisition), or Intel ($20B+ capex annually for fab construction). QCOM's fabless model means TSMC bears the capital burden of leading-edge node transitions (3nm, 2nm). This keeps QCOM's FCF conversion structurally high (~92% of OCF converts to FCF). However, the fabless model also means QCOM has zero control over its manufacturing cost curve — TSMC sets wafer prices, and TSMC's pricing power has been increasing as it consolidates leading-edge market share. Watch: TSMC wafer price increases of 5–10% annually directly compress QCOM's gross margins. Additionally, if QCOM enters AI data centre chips seriously (competing with Broadcom's custom ASICs for hyperscalers), R&D spending could step up significantly — R&D was already $8.9B in FY2025 (20% of revenue), the highest in its history.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>⑧ Bonus: Qualcomm vs Broadcom — Semi Value Chain Contrast</h2>
+<!-- ============================================================ -->
+
+<div class="card management">
+  <h4 class="teal">Where They Sit in the Semiconductor Value Chain</h4>
+  <p><strong>Qualcomm</strong> is an edge/endpoint semiconductor company. Its chips go into devices people hold (smartphones), drive (cars), and interact with (IoT). QCT designs application processors, baseband modems, RF front-end, and connectivity chipsets for handsets, automotive, and IoT endpoints. QTL licenses wireless patents. Revenue is driven by <em>device volumes</em> — billions of handsets, millions of cars. The business model is fabless (TSMC manufactures), design-win-driven (must win each OEM cycle), and exposed to consumer electronics cyclicality.</p>
+  <p style="margin-top:10px;"><strong>Broadcom</strong> is an infrastructure/backbone semiconductor + software company. Its chips sit inside data centres (networking ASICs, custom AI accelerators for Google TPU / Meta MTIA), telecom networks (carrier-grade switching), and enterprise infrastructure (storage controllers, Fibre Channel). Post-VMware ($69B acquisition, Nov 2023), Broadcom added a $13B+ enterprise infrastructure software business with 90%+ recurring revenue and 70%+ operating margins. Revenue is driven by <em>infrastructure spending</em> — hyperscaler capex, telecom buildouts, enterprise IT budgets.</p>
+</div>
+
+<div class="card management">
+  <h4 class="teal">Why Broadcom Has Been the Clear Winner</h4>
+  <p>Broadcom's stock has risen +109% over the past 52 weeks vs QCOM's –8%. The outperformance is driven by five structural advantages:</p>
+  <ul>
+    <li><strong>1. AI Data Centre Tailwind:</strong> Broadcom designs custom AI accelerators (XPUs) for Google, Meta, and likely others. The custom ASIC market for AI training/inference is exploding — Broadcom's AI-related semiconductor revenue exceeded $12B in FY2025. QCOM has minimal data centre exposure today.</li>
+    <li><strong>2. Acquisition-Driven Moat Building:</strong> CEO Hock Tan's playbook — acquire infrastructure assets (CA Technologies, Symantec Enterprise, VMware), cut costs aggressively, and extract monopoly-like margins — has created a diversified cash flow machine. Adjusted EBITDA margin of 68% is extraordinary. QCOM has made only small bolt-on acquisitions (Nuvia, Autotalks).</li>
+    <li><strong>3. Recurring Revenue:</strong> Post-VMware, ~30% of Broadcom's revenue is infrastructure software with 90%+ renewal rates. QCOM has zero recurring software revenue — every dollar of QCT revenue must be re-earned each design cycle.</li>
+    <li><strong>4. Customer Diversification in AI:</strong> Broadcom's top hyperscaler customers (Google, Meta, likely ByteDance) are increasing AI capex 40–60% annually. QCOM's top customers (Apple, Samsung) are in the mature smartphone market with single-digit unit growth.</li>
+    <li><strong>5. Valuation Re-Rating:</strong> The market has re-rated Broadcom from a "boring infrastructure" company (15x forward PE in 2022) to an "AI platform" company (28x forward PE). QCOM has not received any AI-driven re-rating despite marketing itself as an "Edge AI" leader.</li>
+  </ul>
+</div>
+
+<div class="card management">
+  <h4 class="teal">Can Qualcomm Catch Up? — The Bull Case for QCOM Narrowing the Gap</h4>
+  <p>There are scenarios where QCOM could close some of the valuation and performance gap, though overtaking Broadcom's $1.8T market cap is unrealistic in the medium term:</p>
+  <ul>
+    <li><strong>1. Edge AI Becomes the Next Growth Vector:</strong> If on-device AI processing (running LLMs locally on phones, PCs, cars, robots) scales faster than expected, QCOM's Snapdragon platform could be the primary beneficiary. Qualcomm's Hexagon NPU and Oryon CPU are competitive with Apple's M-series for on-device inference. The Edge AI TAM is estimated at $100B+ by 2030 — QCOM would be the dominant platform provider.</li>
+    <li><strong>2. Automotive Scales to a $9B+ Business by FY2029:</strong> QCT Automotive has a $65B+ design win pipeline and is growing 20%+ annually. If QCOM captures 5–10% of the $60B automotive semiconductor TAM, this segment alone could justify a significant re-rating. Automotive semis trade at higher multiples (25–30x) than handset semis (10–15x).</li>
+    <li><strong>3. Snapdragon X Elite PC Platform Gains Traction:</strong> Windows on Arm PCs powered by Snapdragon X Elite offer superior battery life and AI inference performance vs x86. If Arm PCs reach 20%+ market share by 2028 (vs ~8% today), this creates a $3–5B incremental revenue stream for QCOM.</li>
+    <li><strong>4. Buyback-Driven EPS Accretion:</strong> At a 9% FCF yield, QCOM can buy back 7–8% of its market cap annually. Even with zero revenue growth, EPS would compound 7–8% from buybacks alone. Over 5 years, that's a 35–45% EPS increase from capital allocation alone.</li>
+    <li><strong>5. Apple Modem Risk is Overstated:</strong> Apple's modem programme has been repeatedly delayed. If Apple's in-house modem underperforms on 5G-Advanced features, QCOM could retain the premium iPhone segment longer than expected, giving the diversification strategy more runway.</li>
+  </ul>
+  <p style="margin-top:10px;"><strong>Verdict:</strong> Broadcom's structural advantages (AI data centre, recurring software, acquisition moat) are formidable and likely sustain a premium multiple. QCOM's catch-up thesis depends on edge AI, automotive scaling, and successful diversification — execution-dependent. The FCF yield gap (QCOM 9% vs AVGO 1.6%) suggests QCOM offers superior risk-adjusted returns for patient capital willing to endure 2–3 years of Apple modem uncertainty. Broadcom offers momentum and AI exposure. Different investor profiles, different risk/reward.</p>
+</div>
+
+<!-- ============================================================ -->
+<footer>
+  <strong>SOURCES &amp; DATA CITATIONS</strong><br><br>
+
+  <strong>TIER 1 (Primary):</strong><br>
+  stockanalysis.com/stocks/qcom/statistics/ — QCOM statistics: Fwd PE (12.16), PEG (2.70), ROIC (19.74%), net debt ($3.00B), shares outstanding (1,067M), FCF yield ~9%, gross margin (55.43%), operating margin (~28%), D/E ratio (0.64). Accessed April 2026.<br>
+  stockanalysis.com/stocks/avgo/statistics/ — AVGO statistics: Fwd PE (28.14), PEG (0.68), ROIC (21.33%), net debt ($51.88B), market cap $1.80T, FCF $28.91B TTM, D/E (0.83), gross margin (67.77%). Accessed April 2026.<br><br>
+
+  <strong>TIER 2 (Fallback / Cross-check):</strong><br>
+  macrotrends.net/stocks/charts/QCOM/qualcomm/free-cash-flow — FY2025 FCF $12.834B, FY2024 FCF $11.171B, FY2023 FCF $9.849B.<br>
+  macrotrends.net/stocks/charts/QCOM/qualcomm/stock-based-compensation — SBC FY2024 $2.648B, FY2023 $2.484B.<br>
+  macrotrends.net/stocks/charts/QCOM/qualcomm/revenue — FY2025 $44.284B, FY2024 $38.962B, FY2023 $35.820B.<br>
+  stock-analysis-on.net (from 10-K filings) — Gross margin history: FY21 57.5%, FY22 57.8%, FY23 55.7%, FY24 56.2%, FY25 55.4%. GAAP op margin FY21 29.2%, FY22 35.9%, FY23 24.1%, FY24 26.3%, FY25 28.0%.<br>
+  companiesmarketcap.com/broadcom/operating-margin/ — AVGO GAAP operating margin ~36% FY2025.<br><br>
+
+  <strong>TIER 3 (Cross-check / Verification):</strong><br>
+  gurufocus.com/term/forward-pe-ratio/QCOM — Forward PE 11.42 (as of Mar 29, 2026). GF Value $176.37 (Modestly Undervalued).<br>
+  gurufocus.com/term/per+share_freecashflow/QCOM — FCF/share TTM $10.41 (Mar 2025). 5-year avg FCF/share CAGR 16.7%.<br>
+  finbox.com/NASDAQGS:QCOM/explorer/pe_fwd/ — Forward PE 11.5x. Sector percentile: 44.4%.<br><br>
+
+  <strong>TIER 4 (Primary IR / SEC):</strong><br>
+  SEC 8-K (Nov 5, 2025) — Qualcomm FY2025 Q4 Press Release: Revenue $44.28B (+14%), GAAP EPS $5.01, Non-GAAP EPS $12.03, OCF $14.01B, SBC $2,783M, Capex $1,192M. QCT record revenue. Non-Apple QCT revenue +18% YoY.<br>
+  SEC 8-K (Nov 6, 2024) — Qualcomm FY2024 Q4 Press Release: Revenue $38.96B (+9%), GAAP EPS $8.97, Non-GAAP EPS $10.22.<br>
+  SEC 8-K (Feb 4, 2026) — Q1 FY2026 Earnings: Revenue $12.25B (+5%), Non-GAAP EPS $3.50. Q2 FY26 guidance: revenue $10.2–11.0B, Non-GAAP EPS $2.45–2.65.<br>
+  SEC 10-K FY2022, FY2023 — SBC: FY22 $2,031M, FY21 $1,663M. Revenue / op income / cash flow data.<br>
+  Yahoo Finance — QCOM Income Statement & Cash Flow (TTM and 4-year history).<br>
+  investor.qualcomm.com — Investor Day FY2029 targets: $22B non-handset QCT revenue; $65B+ automotive design win pipeline.<br><br>
+
+  <strong>MARKET DATA (April 15–17, 2026):</strong><br>
+  QCOM stock price ~$133 (Investing.com / Yahoo Finance, April 15 2026 close $133.05). Market cap ~$142B. 52-week range: $121.99–$205.95.<br>
+  Consensus analyst target: ~$155 (Investing.com average; range $100–$200). Bernstein downgraded to Market Perform (Mar 2026). Goldman Sachs initiated Neutral (Mar 2026).<br>
+  AVGO stock price ~$393 (April 15 2026). Market cap ~$1.80T. Trailing PE 73.99, Forward PE 28.14.<br>
+  $20B share buyback authorisation announced March 17, 2026. Dividend increased to $0.92/quarter (Mar 2026).<br><br>
+
+  <strong>DISCLAIMER:</strong> This report is produced for analytical and educational purposes only. It does not constitute investment advice, a solicitation, or a recommendation to buy or sell any security. All financial data is sourced from publicly available third-party and company-published sources and may contain inaccuracies. Past performance is not indicative of future results. DCF intrinsic values are model outputs based on assumptions that may not materialise. The analyst producing this report may or may not hold positions in QCOM or related securities. Always conduct your own due diligence and consult a licensed financial adviser before making investment decisions. Forward-looking statements (Qualcomm FY29 targets, automotive pipeline) reflect management guidance only and carry material execution risk.<br><br>
+
+  Report generated: 17 April 2026 | Ticker: NASDAQ:QCOM | Fiscal Year End: Late September
+</footer>
+
+</body>
+</html>
