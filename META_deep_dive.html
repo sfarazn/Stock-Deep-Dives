@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta Platforms (META) — Peter Lynch Financial & SBC Impact Screener Deep-Dive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+  :root{--bg:#faf8f4;--surface:#ffffff;--surface2:#f3efe8;--border:#d9d3c7;--text:#1a1610;--muted:#6b6355;--accent:#c8402a;--gold:#b5870d;--teal:#1a6b6b;--green:#2d7a2d;--red:#c8402a;--yellow:#c88a00}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.65;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+  .report-header{border-top:4px solid var(--accent);border-bottom:2px solid var(--border);padding:28px 0 20px;margin-bottom:36px}
+  .report-header .label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .report-header h1{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;line-height:1.1;color:var(--text)}
+  .report-header .subtitle{font-size:16px;color:var(--muted);margin-top:8px;font-style:italic}
+  .meta-row{display:flex;gap:28px;margin-top:14px;flex-wrap:wrap}
+  .meta-item{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+  .meta-item span{color:var(--text);font-weight:600}
+  h2{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);border-left:4px solid var(--accent);padding-left:14px;margin:40px 0 18px}
+  h3{font-family:'Source Serif 4',serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:28px 0 10px}
+  .table-wrap{overflow-x:auto;margin:0 0 24px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:1px solid var(--border)}
+  th{background:var(--text);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:0.5px;padding:9px 12px;text-align:center;white-space:nowrap;border:1px solid #333}
+  th.row-head{text-align:left;min-width:180px}
+  td{padding:8px 12px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+  td.row-label{text-align:left;font-weight:600;background:var(--surface2);font-size:12px;white-space:nowrap}
+  tr:hover td{background:#f0ede7}tr:hover td.row-label{background:#e8e4dc}
+  .trend-up{color:var(--green);font-weight:600}.trend-down{color:var(--red);font-weight:600}
+  .anomaly{color:var(--accent);font-weight:700}.na{color:#bbb;font-style:italic}
+  .cell-trophy{background:#fffde0}.cell-good{background:#e8f5e9}.cell-warn{background:#fff8e1}.cell-bad{background:#ffebee}
+  .dcf-table td{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .dcf-green{background:#e8f5e9;color:#1a5c1a;font-weight:700}.dcf-yellow{background:#fff8e1;color:#7a5800;font-weight:700}.dcf-red{background:#ffebee;color:#a0281c;font-weight:700}
+  .card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--teal);padding:18px 20px;margin:16px 0;border-radius:2px}
+  .card.red-flag{border-left-color:var(--red)}.card.invert{border-left-color:var(--gold)}.card.golden{border-left-color:var(--green)}.card.management{border-left-color:var(--teal)}
+  .card h4{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+  .card h4.red{color:var(--red)}.card h4.gold{color:var(--gold)}.card h4.teal{color:var(--teal)}.card h4.green{color:var(--green)}
+  .card p,.card li{font-size:13px;line-height:1.7}.card ul{padding-left:18px}.card li{margin-bottom:5px}
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+  .badge-red{background:#ffebee;color:var(--red);border:1px solid #ffcdd2}.badge-green{background:#e8f5e9;color:var(--green);border:1px solid #c8e6c9}
+  .badge-yellow{background:#fff8e1;color:var(--yellow);border:1px solid #ffe082}.badge-grey{background:#f5f5f5;color:var(--muted);border:1px solid #ddd}
+  .note{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:8px;border-top:1px solid var(--border);padding-top:6px}
+  .dcf-inputs{background:var(--surface2);border:1px solid var(--border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;margin-bottom:16px}
+  .dcf-inputs strong{color:var(--teal)}
+  .category-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;font-weight:600;letter-spacing:0.5px}
+  .cat-stalwart{background:#e3f2fd;color:#1565c0}.cat-fast{background:#f3e5f5;color:#6a1b9a}.cat-turnaround{background:#fff3e0;color:#e65100}
+  .stats-row{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);margin-bottom:28px}
+  .stat-box{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center}.stat-box:last-child{border-right:none}
+  .stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  footer{margin-top:60px;padding-top:20px;border-top:2px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <div class="label">Peter Lynch Financial &amp; SBC Impact Screener</div>
+  <h1>Meta Platforms, Inc.</h1>
+  <div class="subtitle">Deep-Dive Analyst Report · Ticker: META · NASDAQ</div>
+  <div class="meta-row">
+    <div class="meta-item">Report Date: <span>20 April 2026</span></div>
+    <div class="meta-item">Price: <span>~$687 (April 18, 2026)</span></div>
+    <div class="meta-item">Market Cap: <span>~$1.74T</span></div>
+    <div class="meta-item">Category: <span><span class="category-badge cat-fast">Fast Grower / Stalwart</span></span></div>
+    <div class="meta-item">HQ: <span>Menlo Park, CA, USA</span></div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">FY2025 Revenue</div>
+    <div class="stat-val">$201.0B</div>
+    <div class="stat-sub">+22% YoY</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">FY2025 FCF</div>
+    <div class="stat-val">$46.1B</div>
+    <div class="stat-sub">22.9% FCF margin</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">Fwd P/E</div>
+    <div class="stat-val">~21x</div>
+    <div class="stat-sub">PEG 1.06</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">GAAP Op Margin</div>
+    <div class="stat-val">41.4%</div>
+    <div class="stat-sub">vs 28.8% in FY22</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">SBC % Rev</div>
+    <div class="stat-val">10.2%</div>
+    <div class="stat-sub">$20.4B FY25</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>① 5-Year Financial Trend</h2>
+<!-- ============================================================ -->
+
+<p style="font-family:'JetBrains Mono',monospace;font-size:11px;background:#e8f5e9;border:1px solid #c8e6c9;padding:10px 14px;margin-bottom:16px;color:#1a5c1a;">
+  <strong>Latest completed FY confirmed: FY2025 (fiscal year ended December 31, 2025)</strong><br>
+  Source: Meta Platforms Q4 FY2025 Earnings Press Release, January 28, 2026 — <a href="https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-Reports-Fourth-Quarter-and-Full-Year-2025-Results/" style="color:#1a5c1a;">investor.atmeta.com</a><br>
+  FY = Jan 1 – Dec 31 (calendar year). Year 1 = FY2021 | Year 2 = FY2022 | Year 3 = FY2023 | Year 4 = FY2024 | Year 5 = FY2025
+</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>FY2021<br><small>Y1</small></th>
+      <th>FY2022<br><small>Y2</small></th>
+      <th>FY2023<br><small>Y3</small></th>
+      <th>FY2024<br><small>Y4</small></th>
+      <th>FY2025<br><small>Y5 (Latest)</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Revenue (USD bn)</td>
+      <td>$117.9</td>
+      <td class="trend-down">$116.6</td>
+      <td class="trend-up">$134.9</td>
+      <td class="trend-up">$164.5</td>
+      <td class="trend-up">$201.0</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth %</td>
+      <td class="trend-up">+37%</td>
+      <td class="anomaly">–1% ⚡</td>
+      <td class="trend-up">+16%</td>
+      <td class="trend-up">+22%</td>
+      <td class="trend-up">+22%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Family DAP (Daily Active People, bn)</td>
+      <td>2.82</td>
+      <td>2.96</td>
+      <td>3.19</td>
+      <td>3.35 (+5%)</td>
+      <td class="trend-up">3.58 (+7%)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Gross Margin %</td>
+      <td>80.8%</td>
+      <td>79.6%</td>
+      <td>80.8%</td>
+      <td>81.7%</td>
+      <td class="trend-up">82.0%</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Operating Margin %</td>
+      <td class="trend-up">39.7%</td>
+      <td class="anomaly">28.8% ⚡</td>
+      <td class="trend-up">34.7%</td>
+      <td class="trend-up">42.2%</td>
+      <td>41.4%</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF (company-reported, USD bn)</td>
+      <td>$39.0</td>
+      <td class="anomaly">$19.3 ⚡</td>
+      <td class="trend-up">$44.1</td>
+      <td class="trend-up">$54.1</td>
+      <td class="trend-down">$46.1</td>
+    </tr>
+    <tr>
+      <td class="row-label">Operating Cash Flow (USD bn)</td>
+      <td>$57.7</td>
+      <td class="trend-down">$50.5</td>
+      <td class="trend-up">$71.1</td>
+      <td class="trend-up">$91.3</td>
+      <td class="trend-up">$115.8</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="trend-up">~33%</td>
+      <td class="trend-down">~15%</td>
+      <td class="trend-up">~24%</td>
+      <td class="trend-up">~32%</td>
+      <td>~28%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend per Share (USD)</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td>$2.00 (initiated)</td>
+      <td class="trend-up">$2.10 (+5%)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Growth %</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">Initiated</td>
+      <td class="trend-up">+5%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Dividend Yield %</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td>~0.3%</td>
+      <td>~0.3%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Forward P/E (current only)</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td>~21x</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio (current only)</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td class="na">N/A</td>
+      <td>1.06</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity %</td>
+      <td>Net cash</td>
+      <td>Net cash</td>
+      <td>~16%</td>
+      <td>~16%</td>
+      <td>~39% (D/E 0.39)</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td>~4.1%</td>
+      <td class="trend-up">~6.8%</td>
+      <td>~4.5%</td>
+      <td>~3.5%</td>
+      <td class="trend-down">~2.8%</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC as % of Revenue</td>
+      <td>8.7%</td>
+      <td class="trend-down">11.3%</td>
+      <td class="trend-up">9.9%</td>
+      <td class="trend-up">10.1%</td>
+      <td>10.2%</td>
+    </tr>
+    <tr>
+      <td class="row-label">Capital Expenditures (USD bn)</td>
+      <td>$18.7</td>
+      <td class="trend-down">$31.4</td>
+      <td>$27.3</td>
+      <td class="trend-down">$37.3</td>
+      <td class="anomaly">$69.7 ⚡</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  ⚡ ANOMALY FLAGS — FY2022 Revenue: –1% YoY driven by Apple ATT privacy changes, TikTok competition, and macro ad spending pullback. | FY2022 Op Margin: Collapsed to 28.8% due to massive Reality Labs spending (+$13.7B losses) and Metaverse-era headcount bloat (86,482 employees). | FY2022 FCF: Fell 51% as capex nearly doubled to $31.4B (Metaverse infrastructure) while revenue declined. | FY2025 FCF: Declined 15% despite 22% revenue growth — entirely driven by capex surge to $69.7B (AI infrastructure buildout). OCF grew +27% YoY; FCF compression is a capex story, not an operating story. | FY2025 Capex $69.7B: Represents a 87% YoY increase and 35% of revenue — the highest capex-to-revenue ratio in Meta's history, driven by AI data center buildout.<br><br>
+  SOURCES: Revenue / Gross Margin / Op Margin / Net Income / EPS — stockanalysis.com/stocks/meta/financials/ (Tier 1); FCF / OCF / Capex — Meta FY2025 Press Release Jan 28, 2026 (Tier 4); SBC — stockanalysis.com/stocks/meta/financials/ (Tier 1); ROIC — stockanalysis.com/stocks/meta/statistics/ (Tier 1, confirmed via gurufocus.com Tier 3); DAP — Meta IR Press Releases (Tier 4); Fwd P/E / PEG — stockanalysis.com/stocks/meta/statistics/ (Tier 1). Note: Meta defines FCF as OCF minus purchases of property/equipment and principal payments on finance leases.
+</div>
+
+<div class="card management">
+  <h4 class="teal">Note on FY2022 Revenue Decline &amp; FY2025 FCF Compression</h4>
+  <p>Meta's FY2022 was its "annus horribilis" — revenue declined for the first time ever, the Metaverse pivot burned credibility, and Zuckerberg's "Year of Efficiency" hadn't yet begun. The stock fell 64% that year. The recovery since FY2023 has been extraordinary: revenue CAGR FY2022→FY2025 of ~20%, GAAP operating margins expanding from 28.8% to 41.4%, and OCF nearly doubling from $50.5B to $115.8B. The FY2025 FCF decline of –15% is entirely attributable to the AI capex surge ($69.7B, up from $37.3B in FY2024). Operating cash generation remains exceptionally strong. The critical question is whether the AI infrastructure buildout ($115–135B guided for FY2026) will generate adequate returns. SBC remains elevated at 10.2% of revenue ($20.4B), representing the cost of retaining ~79,000 employees in a hyper-competitive AI talent market.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>② Lynch Screener — Competitor Benchmark</h2>
+<!-- ============================================================ -->
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th class="row-head">Metric</th>
+      <th>META<br><small>Meta Platforms</small></th>
+      <th>GOOGL<br><small>Alphabet</small></th>
+      <th>PINS<br><small>Pinterest</small></th>
+      <th>RDDT<br><small>Reddit</small></th>
+      <th>SNAP<br><small>Snap Inc.</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">Category (Lynch)</td>
+      <td class="cell-good">✅ Fast Grower / Stalwart</td>
+      <td class="cell-good">✅ Stalwart</td>
+      <td class="cell-good">✅ Fast Grower (Niche)</td>
+      <td class="cell-trophy">🏆 Fast Grower (Early-Stage)</td>
+      <td class="cell-warn">⚠️ Turnaround</td>
+    </tr>
+    <tr>
+      <td class="row-label">Revenue Growth (Latest FY)</td>
+      <td class="cell-trophy">🏆 +22% (FY25)</td>
+      <td class="cell-good">✅ +14% (FY25)</td>
+      <td class="cell-good">✅ +16% (FY25)</td>
+      <td class="cell-trophy">🏆 +69% (FY25)</td>
+      <td class="cell-warn">⚠️ +11% (FY25)</td>
+    </tr>
+    <tr>
+      <td class="row-label">ROIC %</td>
+      <td class="cell-trophy">🏆 27.8%</td>
+      <td class="cell-trophy">🏆 31.2%</td>
+      <td class="cell-good">✅ 12.2%</td>
+      <td class="cell-good">✅ 10.8%</td>
+      <td class="cell-bad">❌ –5.1% (negative)</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP Op Margin %</td>
+      <td class="cell-trophy">🏆 41.4%</td>
+      <td class="cell-good">✅ 32.7%</td>
+      <td class="cell-warn">⚠️ 6.2%</td>
+      <td class="cell-good">✅ ~20% (Q4'25)</td>
+      <td class="cell-bad">❌ –9.0% (operating loss)</td>
+    </tr>
+    <tr>
+      <td class="row-label">GAAP vs Non-GAAP Gap (pts)</td>
+      <td class="cell-warn">⚠️ ~10 pts (SBC $20.4B)</td>
+      <td class="cell-warn">⚠️ ~8 pts</td>
+      <td class="cell-bad">❌ ~20+ pts (SBC-heavy)</td>
+      <td class="cell-bad">❌ ~25+ pts (SBC-heavy, early stage)</td>
+      <td class="cell-bad">❌ ~20+ pts (perennial losses)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Fwd P/E</td>
+      <td class="cell-good">✅ ~21x</td>
+      <td class="cell-warn">⚠️ ~28x</td>
+      <td class="cell-trophy">🏆 ~11x</td>
+      <td class="cell-bad">❌ ~40x</td>
+      <td class="cell-bad">❌ N/A (losses)</td>
+    </tr>
+    <tr>
+      <td class="row-label">PEG Ratio</td>
+      <td class="cell-good">✅ 1.06</td>
+      <td class="cell-warn">⚠️ 1.84</td>
+      <td class="cell-trophy">🏆 0.60</td>
+      <td class="cell-good">✅ 1.09</td>
+      <td class="cell-bad">❌ N/A (losses)</td>
+    </tr>
+    <tr>
+      <td class="row-label">Net Debt / Equity %</td>
+      <td class="cell-warn">⚠️ D/E 0.39 (net debt ~$3.5B)</td>
+      <td class="cell-trophy">🏆 Net cash $59.9B</td>
+      <td class="cell-trophy">🏆 Net cash $2.2B</td>
+      <td class="cell-trophy">🏆 Net cash ~$2.1B</td>
+      <td class="cell-bad">❌ Net debt $1.2B; D/E 1.73</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Yield %</td>
+      <td class="cell-warn">⚠️ 2.8% (depressed by capex)</td>
+      <td class="cell-warn">⚠️ ~1.9%</td>
+      <td class="cell-trophy">🏆 ~12.5%</td>
+      <td class="cell-warn">⚠️ ~2.2%</td>
+      <td class="cell-warn">⚠️ ~6.5% (small base)</td>
+    </tr>
+    <tr>
+      <td class="row-label">SBC % of Revenue</td>
+      <td class="cell-warn">⚠️ 10.2% — elevated</td>
+      <td class="cell-warn">⚠️ ~8%</td>
+      <td class="cell-bad">❌ ~22% — very high</td>
+      <td class="cell-bad">❌ ~30%+ — extremely high (early stage)</td>
+      <td class="cell-bad">❌ ~25% — very high</td>
+    </tr>
+    <tr>
+      <td class="row-label">FCF Quality</td>
+      <td class="cell-warn">⚠️ OCF strong ($115.8B); capex heavy ($69.7B) depresses FCF</td>
+      <td class="cell-warn">⚠️ Similar — massive capex cycle depressing FCF</td>
+      <td class="cell-trophy">🏆 Excellent — minimal capex, high conversion</td>
+      <td class="cell-good">✅ Near-zero capex; FCF = OCF</td>
+      <td class="cell-warn">⚠️ Marginal — FCF $437M; losses persist</td>
+    </tr>
+    <tr>
+      <td class="row-label">Buyback Efficiency</td>
+      <td class="cell-good">✅ $26.3B repurchases FY25; shares –1.5% YoY</td>
+      <td class="cell-good">✅ Active buyback; shares –3.1% YoY</td>
+      <td class="cell-warn">⚠️ No buybacks; SBC dilutive</td>
+      <td class="cell-bad">❌ Shares +39% YoY (post-IPO dilution)</td>
+      <td class="cell-warn">⚠️ $500M program, but net dilutive from SBC</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  SOURCES: META — stockanalysis.com/stocks/meta/statistics/ (Tier 1); Meta FY25 Press Release Jan 28 2026 (Tier 4). GOOGL — stockanalysis.com/stocks/googl/statistics/ (Tier 1). PINS — stockanalysis.com/stocks/pins/statistics/ (Tier 1); Pinterest FY25 revenue $4.22B per stockanalysis.com. RDDT — stockanalysis.com/stocks/rddt/statistics/ (Tier 1); Reddit FY25 revenue $2.20B (+69% YoY). SNAP — stockanalysis.com/stocks/snap/statistics/ (Tier 1); Snap FY25 revenue $5.93B (+11%). SBC percentages estimated from respective annual filings vs revenue. All data as of mid-April 2026 unless otherwise noted.
+</div>
+
+<!-- ============================================================ -->
+<h2>③ DCF Analyst — Table 2 Mode B</h2>
+<!-- ============================================================ -->
+
+<div class="card management">
+  <h4 class="teal">Pre-Model Audit — Step A: FCF Trend &amp; Breach Assessment</h4>
+  <p><strong>5-Year Reported FCF History (GAAP, as filed):</strong></p>
+  <ul style="margin-top:8px;">
+    <li><strong>FY2021</strong> (ended Dec 31 2021): $39.0B — Source: Meta FY21 10-K / stockanalysis.com <span class="badge badge-green">Healthy Growth</span></li>
+    <li><strong>FY2022</strong> (ended Dec 31 2022): $19.3B — YoY –$19.7B (–51%) — Source: Meta FY22 Press Release <span class="badge badge-red">Breach — FCF decline &gt; –10%</span> (Cause: Capex surged to $31.4B from $18.7B for Metaverse infrastructure + revenue decline)</li>
+    <li><strong>FY2023</strong> (ended Dec 31 2023): $44.1B — YoY +$24.8B (+129%) — Source: Meta FY23 Press Release <span class="badge badge-green">Healthy Growth</span> (Recovery: Year of Efficiency, capex pulled back to $27.3B, revenue rebounded +16%)</li>
+    <li><strong>FY2024</strong> (ended Dec 31 2024): $54.1B — YoY +$10.0B (+23%) — Source: Meta FY24 Press Release / stockanalysis.com <span class="badge badge-green">Healthy Growth</span></li>
+    <li><strong>FY2025</strong> (ended Dec 31 2025): $46.1B — YoY –$8.0B (–15%) — Source: Meta FY25 Press Release Jan 28 2026 <span class="badge badge-red">Breach — FCF decline &gt; –10%</span> (Cause: Capex surged to $69.7B from $37.3B for AI infrastructure; OCF actually grew +27% to $115.8B)</li>
+  </ul>
+  <p style="margin-top:10px;"><strong>Breach Assessment:</strong> TWO breach years identified (FY2022, FY2025). However, both breaches share the same structural cause: massive capex step-ups (Metaverse in 2022, AI in 2025) — NOT operating deterioration. OCF grew in 4 of 5 years and is at an all-time high of $115.8B. The FCF volatility is entirely capex-driven.</p>
+  <p style="margin-top:6px;"><strong>Verdict: HIGH VOLATILITY (on FCF) — but MODERATE on an OCF basis</strong> <span class="badge badge-yellow">High Volatility — Capex-Driven</span></p>
+  <p style="margin-top:8px;"><strong>FCF Growth Calibration:</strong> 5-year FCF CAGR (FY21→FY25) = +3.4% vs Revenue 5-year CAGR = ~14.3%. FCF has compounded dramatically slower than revenue due to escalating capex intensity. This is not typical of a mature ad-tech platform — it reflects Meta's transformation into an AI infrastructure company. For DCF purposes, OCF growth (~19% CAGR) is a more reliable indicator of underlying business momentum. Scenario growth rates will be anchored to revenue CAGR (~14–22%) but with explicit capex assumptions that determine the FCF conversion.</p>
+</div>
+
+<div class="card management">
+  <h4 class="teal">Pre-Model Audit — Step B: FCF Base Normalisation</h4>
+  <p><strong>Most Recent Full-Year Reported FCF (FY2025):</strong> $46.1B (source: Meta FY25 Press Release). Note: Meta separately reports FCF as $43.59B in its press release (OCF $115.8B – capex including finance leases $72.2B). stockanalysis.com reports $46.1B (OCF $115.8B – property/equipment purchases $69.7B, excluding finance lease principal). We use stockanalysis.com's $46.1B for consistency but note the ~$2.5B difference from finance lease definitions.</p>
+  <p style="margin-top:8px;"><strong>One-time items examined:</strong></p>
+  <ul style="margin-top:6px;">
+    <li><strong>Capex vs 3-Year Average:</strong> FY25 capex = $69.7B. FY23 = $27.3B, FY24 = $37.3B. 3-year average = $44.8B. FY25 capex is $24.9B ABOVE the 3-year average — a clear structural step-up, not a one-time item. Management has guided to $115–135B for FY26, confirming this is the new run-rate. Direction: <em>Depresses FCF structurally.</em></li>
+    <li><strong>One Big Beautiful Bill Act — Tax Impact:</strong> FY2025 effective tax rate was 30% (vs 12% in FY2024) due to a one-time valuation allowance charge from tax law changes in Q3 2025. Absent this charge, the effective rate would have been ~13%. This reduced net income by ~$12.7B but the cash tax impact was partially offset by deferred tax timing. FY2026 guided tax rate: 13–16%. Direction: <em>One-time tax charge depressed net income but had limited direct FCF impact (deferred taxes added back in OCF).</em></li>
+    <li><strong>Share-Based Compensation:</strong> $20.4B in FY25 (vs $16.7B in FY24, +22%). Non-cash charge that does NOT reduce FCF. It adds back in OCF. However, the associated cash tax payments on net settled equity awards were $18.4B in FY25 — this IS a real cash outflow that reduces financing cash flows (not OCF, but real cash nonetheless).</li>
+    <li><strong>Non-Marketable Equity Investments:</strong> $18.3B in purchases (investing activities) — primarily CoreWeave and other AI infrastructure investments. These are strategic capital deployments, not FCF-relevant but indicate massive capital allocation beyond reported capex.</li>
+  </ul>
+  <p style="margin-top:10px;"><strong>Conclusion:</strong> No material one-time depressants to strip from FCF. The capex surge is structural, not one-off. The tax charge was one-time but did not materially affect FCF (deferred tax mechanics). <strong>Reported FCF of $46.1B used as DCF anchor, but with a critical caveat: FCF is artificially depressed by the AI capex cycle. If capex normalised to pre-AI levels (~$20B, or ~10% of revenue), FCF would be ~$96B — more than double the reported figure.</strong></p>
+  <p style="margin-top:6px;"><strong>Reported FCF:</strong> $46.1B | <strong>Normalised FCF (pre-AI capex):</strong> ~$96B (theoretical) | <strong>DCF Anchor:</strong> $46.1B reported (conservative — uses actual current capex)</p>
+</div>
+
+<div class="card management">
+  <h4 class="teal">Pre-Model Audit — Step C: FCF / NOPAT Ratio Check</h4>
+  <p><strong>GAAP Operating Income FY25:</strong> $83.3B</p>
+  <p style="margin-top:6px;"><strong>Effective Tax Rate (normalised):</strong> 13% (guided FY26 rate; FY25's 30% rate was distorted by one-time tax charge)</p>
+  <p style="margin-top:6px;"><strong>NOPAT</strong> = $83.3B × (1 – 0.13) = $83.3B × 0.87 = <strong>$72.5B</strong></p>
+  <p style="margin-top:6px;"><strong>FCF / NOPAT</strong> = $46.1B / $72.5B = <strong>64%</strong> <span class="badge badge-yellow">Below Normal Range — Investigate</span></p>
+  <p style="margin-top:8px;"><strong>Explanation:</strong> FCF/NOPAT at 64% is unusually low, driven entirely by Meta's extraordinary capex intensity in FY2025 ($69.7B). On an OCF basis, OCF/NOPAT = $115.8B / $72.5B = 160%, which is healthy and indicates excellent operating cash conversion. The sub-100% FCF/NOPAT ratio is temporary and will persist or worsen in FY2026 (capex guided $115–135B). This is a feature of Meta's current investment phase, not a structural quality deficiency. If/when capex normalises, FCF will snap back toward OCF levels. DCF anchor remains $46.1B reported FCF.</p>
+</div>
+
+<div class="dcf-inputs">
+  <strong>DCF Model Inputs — Meta Platforms (META) | As of 20 April 2026</strong><br><br>
+  <strong>Reported FCF (FY25):</strong> $46,109M (source: stockanalysis.com; cross-checked: Meta FY25 Press Release Jan 28 2026)<br>
+  <strong>Normalised FCF:</strong> $46,109M (no adjustment — capex is structural, not one-off; reported FCF used as anchor)<br>
+  <strong>Capex Step-Up Note:</strong> FY25 capex $69.7B is 87% above FY24 ($37.3B) and 155% above 3yr avg ($44.8B). If capex were at pre-AI levels (~$20B), FCF would be ~$96B — a sensitivity to keep in mind<br>
+  <strong>FCF / NOPAT Ratio:</strong> 64% — below normal; driven by capex intensity, not operating weakness. OCF/NOPAT = 160% (healthy)<br>
+  <strong>Net Debt / (Cash) per Share:</strong> Net debt = $3.49B ($81.6B cash/securities minus $85.1B total debt); per share = $1.38/share net debt (source: stockanalysis.com/stocks/meta/statistics/ Tier 1)<br>
+  <strong>Shares Outstanding:</strong> 2,530M (basic) / 2,574M (diluted)<br>
+  <strong>Current Stock Price:</strong> ~$687 (April 18, 2026)<br>
+  <strong>Sector Cap (Tech/Social):</strong> Bull Y1–3 growth capped at 30% | Terminal g = 3%<br>
+  <strong>Q1 2026 Revenue Guidance:</strong> $53.5–56.5B (+25–33% YoY at midpoint, includes ~4% FX tailwind)<br>
+  <strong>5-Year Revenue CAGR (FY21–FY25):</strong> ~14.3%<br>
+  <strong>Revenue growth scenarios anchored to top-line trend per FCF Growth Calibration Rule</strong><br>
+  <strong>CRITICAL CAPEX ASSUMPTION:</strong> All scenarios assume FY26 capex at $125B midpoint, then declining to ~15% of revenue by Y5 as the AI buildout matures, reaching ~12% by Y10. This capex glide path determines FCF conversion from OCF.<br>
+  <strong>Bear:</strong> Y1–3 revenue growth at 10% (assumes ad market slowdown + AI capex ROI disappointment); FCF depressed in Y1–2 due to peak capex, recovering Y3+. Bear FCF growth at ~3% Y1, rising to 12–15% Y3–5 as capex normalises<br>
+  <strong>Base-Low:</strong> Y1–3 revenue growth 14% (below recent trajectory); capex ramp plateaus Y2; FCF growth 8–12%<br>
+  <strong>Base:</strong> Y1–3 revenue growth 18–20% (aligned with recent trajectory and Q1'26 guidance); capex peaks Y1 then stabilises; FCF growth 12–18% as operating leverage + capex normalisation combine<br>
+  <strong>Bull:</strong> Y1–3 revenue growth 22–25% (AI-driven ad monetisation accelerates); capex peaks Y1 then declines as % of revenue; FCF growth 18–25%
+</div>
+
+<div class="table-wrap">
+<table class="dcf-table">
+  <thead>
+    <tr>
+      <th class="row-head">Discount Rate (r)</th>
+      <th>🐻 Bear<br><small>FCF Y1–3: +5% | Y4–7: +10% | Y8–10: +6%</small></th>
+      <th>📉 Base-Low<br><small>FCF Y1–3: +10% | Y4–7: +12% | Y8–10: +6%</small></th>
+      <th>📊 Base<br><small>FCF Y1–3: +15% | Y4–7: +12% | Y8–10: +5%</small></th>
+      <th>🚀 Bull<br><small>FCF Y1–3: +22% | Y4–7: +14% | Y8–10: +5%</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="row-label">r = 8%</td>
+      <td class="dcf-yellow">🟡 $638<br><small>–7% vs $687</small></td>
+      <td class="dcf-green">🟢 $777<br><small>+13% vs $687</small></td>
+      <td class="dcf-green">🟢 $938<br><small>+37% vs $687</small></td>
+      <td class="dcf-green">🟢 $1,198<br><small>+74% vs $687</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 9%</td>
+      <td class="dcf-red">🔴 $553<br><small>–20% vs $687</small></td>
+      <td class="dcf-yellow">🟡 $671<br><small>–2% vs $687</small></td>
+      <td class="dcf-green">🟢 $808<br><small>+18% vs $687</small></td>
+      <td class="dcf-green">🟢 $1,029<br><small>+50% vs $687</small></td>
+    </tr>
+    <tr>
+      <td class="row-label">r = 10%</td>
+      <td class="dcf-red">🔴 $483<br><small>–30% vs $687</small></td>
+      <td class="dcf-red">🔴 $584<br><small>–15% vs $687</small></td>
+      <td class="dcf-green">🟢 $701<br><small>+2% vs $687</small></td>
+      <td class="dcf-green">🟢 $890<br><small>+30% vs $687</small></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;background:#e3f2fd;border:1px solid #90caf9;padding:10px 14px;margin:10px 0;color:#1565c0;">
+  ⚠️ CRITICAL CAPEX SENSITIVITY: These intrinsic values are highly sensitive to the capex normalisation timeline. If Meta's capex stays above 30% of revenue through Y5 (instead of declining to ~15%), all intrinsic values would be 20–30% lower. Conversely, if capex normalises faster (e.g., $80B in FY27 declining to $60B by FY29), intrinsic values would be 15–25% higher. The Bear scenario at r=10% assumes prolonged capex intensity with limited revenue acceleration — essentially pricing in an AI capex cycle with poor ROI. At WACC ≈ 10.8% (per stockanalysis.com), the Base case is the critical scenario — and it implies the stock is roughly fairly valued.
+</p>
+
+<div class="note">
+  All intrinsic values include net debt adjustment: –$1.38/share subtracted from DCF equity value. Terminal growth rate = 3.0%. FCF base = $46.1B (FY25 reported). FCF growth assumptions incorporate BOTH revenue growth AND capex normalisation trajectory. Bear scenario assumes capex stays at ~25% of revenue through Y5; Base assumes decline to ~15% by Y5; Bull assumes decline to ~12% by Y5. Sensitivity: If we used "normalised" FCF of $96B (pre-AI capex levels), all intrinsic values would approximately double — but this is NOT realistic while the AI buildout is in progress. The correct approach is to model the capex glide path explicitly.
+</div>
+
+<!-- ============================================================ -->
+<h2>④ Management Commentary</h2>
+<!-- ============================================================ -->
+
+<div class="card management">
+  <h4 class="teal">Q4 FY2025 Earnings Call — Management Tone &amp; Key Quotes (Jan 28, 2026)</h4>
+  <p><strong>Overall Tone:</strong> Confident and forward-looking, with a laser focus on AI as the company's future. Zuckerberg's opening was brief and visionary. CFO Susan Li was more measured, acknowledging the significant step-up in capital intensity while framing it as necessary investment.</p>
+  <p style="margin-top:10px;"><strong>Mark Zuckerberg (Founder &amp; CEO):</strong> Struck a strong note on AI, describing the goal as advancing "personal superintelligence" for people globally in 2026. Called FY2025 a year of "strong business performance." The brevity was notable — the substance was in the numbers and the capex guide.</p>
+  <p style="margin-top:10px;"><strong>Susan Li (CFO):</strong> Outlined Q1 2026 revenue guidance of $53.5–56.5B (+25–33% YoY), implying continued ad revenue acceleration. FY2026 total expenses guided at $162–169B, with the majority of growth driven by infrastructure costs (third-party cloud, depreciation, operating expenses). The capex guidance of $115–135B was the headline number — representing a 60–88% increase over FY2025's $72.2B. Despite this, Li guided that FY2026 operating income would be above FY2025 levels — a critical signal that revenue growth is expected to outpace expense growth. Tax rate guided at 13–16% (normalising after the one-time 2025 charge).</p>
+  <p style="margin-top:10px;"><strong>FY2026 Guidance Summary:</strong> Revenue Q1'26: $53.5–56.5B | Total expenses: $162–169B | Capex: $115–135B | Tax rate: 13–16% | Operating income: above FY25's $83.3B | Reality Labs losses: similar to FY25 levels (~$19.8B estimated).</p>
+  <p style="margin-top:10px;"><strong>Key Strategic Metric:</strong> 3.58 billion DAP (+7% YoY). Ad impressions +12% FY25, average price per ad +9%. FY25 ad revenue from Family of Apps was $198.4B. Threads, Meta AI, and WhatsApp Business monetisation remain in early innings.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Analyst Reaction &amp; Market Concerns — Post-Q4 FY25</h4>
+  <p><strong>Initial Stock Move:</strong> META surged ~9.7% after-hours following the Q4 beat ($8.88 EPS vs $8.19 consensus; $59.9B revenue vs $58.4B consensus). However, shares have since pulled back to ~$687 from a post-earnings high near $738, reflecting broader market concerns and the social media addiction verdict overhang.</p>
+  <p style="margin-top:8px;"><strong>Consensus Target:</strong> ~$838 (stockanalysis.com average of 40+ analysts as of April 2026) — implying ~22% upside from $687. Consensus rating: "Strong Buy."</p>
+  <p style="margin-top:8px;"><strong>Top Analyst Concerns:</strong></p>
+  <ul>
+    <li><strong>Capex magnitude — $115–135B in FY2026:</strong> This is the single largest capital expenditure guide in the history of the technology industry (ex-state entities). Analysts are divided on whether this generates adequate returns. The bull case relies on AI-enhanced ad targeting, Meta AI engagement, and new revenue streams. The bear case worries about Metaverse 2.0 — spending without clear ROI.</li>
+    <li><strong>Social media addiction verdict:</strong> In March/April 2026, a New Mexico jury found Meta liable for youth harm, and a separate California verdict went against both Meta and Google. Meta stock fell ~8% on the verdict news. Thousands of additional lawsuits are pending. Potential for multi-billion dollar settlements or regulatory overhaul.</li>
+    <li><strong>Reality Labs cumulative losses:</strong> Estimated cumulative losses of ~$84B+ through FY2025 (approximately $13.7B in FY22, $16.1B in FY23, $17.7B in FY24, ~$19.8B in FY25). Returns on VR/AR remain de minimis.</li>
+    <li><strong>EU regulatory headwinds:</strong> European Commission is pushing Meta to reinstate rival AI assistants on WhatsApp. Less Personalised Ads changes being rolled out in Q1 2026 per EC agreement. Material revenue risk from any mandatory interoperability requirements.</li>
+    <li><strong>Workforce restructuring:</strong> Reports of 10% workforce cuts (~8,000 jobs) planned for May 2026, even as the company guides higher expenses. Signals tension between AI investment and operational cost discipline.</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<h2>⑤ Red Flags — Six-Point Lynch Audit</h2>
+<!-- ============================================================ -->
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 1 — Margins Compressing</h4>
+  <p><strong>Status: WATCH ⚠️</strong> — GAAP operating margin declined from 42.2% (FY24) to 41.4% (FY25). This is a modest –0.8pt contraction but represents the first margin decline since the FY22 trough. The cause is cost growth (+24% YoY) broadly matching revenue growth (+22%), driven by infrastructure costs and AI talent investment. Gross margin actually expanded to a record 82.0%. Management guides FY26 operating income above FY25 levels, implying margin stabilisation or expansion. However, with FY26 total expenses guided at $162–169B (vs $117.7B in FY25, a +38–44% increase), there is real risk that margins compress further in FY26 if revenue growth doesn't accelerate to ~30%+. Q1 2026 guidance implies +25–33% revenue growth, which is encouraging. <strong>Not currently confirmed, but on watch — FY26 is the critical test year.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 2 — Volume / User Declining</h4>
+  <p><strong>Status: NOT PRESENT</strong> — Family DAP reached 3.58 billion in December 2025, +7% YoY — the fastest user growth rate since FY2021. Ad impressions grew +12% YoY in FY25. Average price per ad grew +9% YoY. Both volume and pricing are expanding simultaneously — the ideal combination. Threads is growing rapidly, Meta AI has significant engagement, and WhatsApp business messaging is monetising. Instagram Reels continue to gain share vs TikTok. No volume or engagement concerns whatsoever.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 3 — FCF Volatile</h4>
+  <p><strong>Status: CONFIRMED ⚠️</strong> — FCF is volatile: $39.0B → $19.3B → $44.1B → $54.1B → $46.1B over 5 years. Two breach years (FY22, FY25). However, the volatility is entirely capex-driven, NOT operating deterioration. OCF has been stable and growing: $57.7B → $50.5B → $71.1B → $91.3B → $115.8B. The underlying operating cash generation is world-class. FCF will remain volatile as long as capex continues to ramp — and with $115–135B guided for FY26, expect FCF to compress further in FY26 before (potentially) recovering as the AI buildout matures. <strong>Lynch would flag this as a real risk: management is deploying enormous capital with uncertain returns.</strong></p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 4 — Capex &gt;70% of Operating Cash Flow</h4>
+  <p><strong>Status: CONFIRMED — RED FLAG 🚨</strong> — FY25 Capex (including finance leases) = $72.2B / OCF = $115.8B = <strong>62% capex/OCF ratio</strong>. Using purchases of property/equipment only: $69.7B / $115.8B = 60%. Both ratios are approaching the critical 70% threshold. FY26 capex guidance of $115–135B against estimated OCF of ~$130–145B would push the ratio to 80–95%+ — firmly above the 70% red flag level. Meta is transforming from a capital-light ad platform into a capital-intensive AI infrastructure company. This is the most significant structural risk in the investment case. Pre-AI (FY2019–2020), capex was ~$15B on ~$85B revenue (~18% of revenue). Now it's ~35% of revenue and rising.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 5 — Debt Growing in Downturn</h4>
+  <p><strong>Status: WATCH ⚠️</strong> — Long-term debt grew from $28.8B (Dec 2024) to $58.7B (Dec 2025) — a +$29.9B increase in a single year ($29.9B in new debt issued in Q4 2025 alone). Net debt position shifted from net cash ($5.1B) in FY2024 to net debt ($3.5B) in FY2025. This is occurring in a period of strong revenue growth, not a downturn — but the pace of debt accumulation is notable. Meta is leveraging up to fund AI infrastructure + buybacks + dividends simultaneously. With $115–135B in capex guided for FY26 and ~$115B in OCF, the company will likely need additional debt issuance. The D/E ratio of 0.39 is manageable but rising rapidly. Interest coverage at 71x remains exceptional.</p>
+</div>
+
+<div class="card red-flag">
+  <h4 class="red">Red Flag 6 — Management Using Uncertainty / Headwinds Language</h4>
+  <p><strong>Status: CONFIRMED — MIXED ⚠️</strong> — The FY25 earnings press release explicitly flagged multiple headwinds: "we continue to monitor legal and regulatory headwinds in the EU and the U.S. that could significantly impact our business" and "we continue to see scrutiny on youth-related issues and have a number of trials scheduled for this year in the U.S., which may ultimately result in a material loss." The EU Less Personalised Ads concession, the WhatsApp interoperability dispute, and the social media addiction jury verdicts represent genuine regulatory risk that management cannot dismiss. The workforce reduction (10% / ~8,000 jobs) planned for May 2026 also signals cost discipline concerns despite the massive capex ramp. Zuckerberg's tone was confident, but the legal language was notably cautious.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>⑥ Invert — Charlie Munger Style</h2>
+<!-- ============================================================ -->
+
+<div class="card invert">
+  <h4 class="gold">Why This Could Be a Bad Long-Term Investment</h4>
+  <p>Meta is spending $115–135B in FY2026 on AI infrastructure — more than the GDP of many countries — with no proven revenue model beyond incremental ad optimisation improvements. The company is simultaneously funding Reality Labs losses (~$20B/year), buybacks ($26B/year), dividends ($5B/year), and AI capex ($125B/year). Total capital commitments exceed $175B annually against ~$116B in OCF. This requires debt issuance and balance sheet drawdowns. If AI ad monetisation fails to deliver adequate returns within 3–5 years, Meta will have burned through $300–500B in cumulative AI capex with marginal FCF to show for it. Meanwhile, 97% of revenue comes from advertising — a business model that has proven cyclically vulnerable (FY2022) and is facing structural regulatory risk (EU privacy, US youth safety, potential TikTok-style bans). The social media addiction verdicts could open a Big Tobacco–style liability exposure running into tens of billions.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">What Could Invalidate the Bull Thesis Despite Good Financials</h4>
+  <p>A world where AI investment becomes table stakes — where every tech company spends similar amounts on AI infrastructure without any single company gaining a durable competitive advantage — would be devastating for Meta's ROI thesis. If Google, Amazon, Apple, and Microsoft all deploy comparable AI ad-targeting tools, Meta's AI capex produces no incremental competitive moat. The company would have spent hundreds of billions to maintain its current market position rather than expand it. Additionally, the regulatory environment is shifting adversely: if the EU mandates ad-free options that gain significant adoption, or if US legislation restricts targeted advertising to minors, Meta's revenue per user could decline even as its infrastructure costs continue rising. The "Magnificent Seven" premium Meta has enjoyed could evaporate if the market recategorises it as a capital-intensive utility rather than a capital-light ad platform.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Assumptions That Must Go Right for This to Succeed</h4>
+  <p>The DCF Base scenario at $808 (r=9%) requires: (1) AI-enhanced ad targeting produces measurable revenue uplift that justifies the capex — advertisers must pay meaningfully more per impression or Meta must significantly expand its addressable market. (2) Capex intensity peaks in FY2026–2027 and begins declining as a percentage of revenue by FY2028, allowing FCF margins to recover toward 25–30%. (3) Reality Labs losses stabilise or shrink — not grow — over the next 3 years. (4) Regulatory outcomes from social media addiction trials do not result in aggregate settlements exceeding $10–20B. (5) The EU privacy/interoperability framework remains manageable and does not materially reduce European ARPU. (6) The Threads, Meta AI, and WhatsApp Business monetisation opportunities contribute at least $10–15B in incremental revenue by FY2028. All six need to go broadly right. The capex normalisation timeline (assumption #2) is the single most important variable — if capex stays above 25% of revenue through FY2029, intrinsic value falls 30–40% from Base.</p>
+</div>
+
+<div class="card invert">
+  <h4 class="gold">Structural Weaknesses — The Munger Pre-Mortem</h4>
+  <p><strong>1. Single revenue stream concentration:</strong> 97%+ of revenue from advertising. Despite 3.58 billion daily users, Meta has failed to meaningfully diversify its revenue streams in 20 years. Commerce, payments, subscriptions, and hardware have all underperformed. <strong>2. Founder-controlled governance:</strong> Zuckerberg holds majority voting power through dual-class shares. There is no meaningful shareholder check on capital allocation decisions. The Metaverse pivot (which destroyed ~$250B in shareholder value in 2022) was a unilateral decision. The AI pivot, while more consensus-supported, carries similar concentration risk. <strong>3. Demographic risk:</strong> Instagram and Facebook face aging user demographics in developed markets. TikTok (despite regulatory threats) continues to capture younger demographics. Threads is growing but remains unmonetised. <strong>4. Geopolitical vulnerability:</strong> ~50%+ of revenue from outside the US; regulatory fragmentation (EU DMA/DSA, potential India restrictions, China ban permanent) creates an increasingly complex operating environment. A global ad recession would hit Meta disproportionately as a pure-play ad company.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>⑦ Golden Tips — Lynch Analyst Watchlist</h2>
+<!-- ============================================================ -->
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 1 — GAAP vs Non-GAAP: The $20.4B SBC Reality</h4>
+  <p>Meta reports limited non-GAAP metrics (mainly FCF), which is refreshingly transparent compared to many tech peers. However, SBC of $20.4B (10.2% of revenue) is a real economic cost. GAAP operating income was $83.3B; adding back SBC gives non-GAAP operating income of ~$103.7B — a ~$20.4B gap. The associated tax payments on equity settlements ($18.4B in FY25) are a significant cash outflow that is often overlooked. Meta's diluted share count declined only 1.5% YoY despite $26.3B in buybacks because SBC partially offsets the repurchases. Net buyback yield after SBC dilution: ~1.5%. Lynch would note that SBC at 10% of revenue is acceptable for a tech company of Meta's quality, but the absolute dollar figure ($20.4B) represents real value transfer from shareholders to employees. The positive: SBC as a percentage of revenue has been roughly stable at 9–11% for five years, suggesting management isn't using it to inflate growth metrics.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 2 — FCF vs Net Income: Why OCF Is the Real Scorecard Here</h4>
+  <p>In most Lynch analyses, FCF is the gold standard. For Meta in its current AI investment phase, OCF is more informative. FY25 net income was $60.5B, OCF was $115.8B (nearly double net income — driven by massive D&A of $18.6B and SBC addback of $20.4B), but FCF was only $46.1B (after $69.7B capex). The usual FCF-to-net-income comparison breaks down when a company is in a transformative capex cycle. The critical metric to track is OCF growth (+27% YoY) and OCF margin (57.6% of revenue — one of the highest in all of large-cap tech). If Meta's AI capex produces adequate returns, OCF will eventually convert into FCF at much higher rates once the buildout matures. If not, Meta will have over-invested and destroyed significant shareholder value. The OCF trajectory is the leading indicator — watch for OCF margin contraction as the first warning sign.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 3 — Revenue Up, Margins Down? Not Quite — But Watch FY2026</h4>
+  <p>FY2025 shows an unusual pattern: revenue up +22%, but GAAP operating margin slightly down (41.4% vs 42.2%). This is the classic "revenue up, margins down" pattern that Lynch flags — but the decline is only 0.8 percentage points and is driven by deliberate investment choices (AI talent, infrastructure costs) rather than competitive pressure or pricing deterioration. Gross margins actually expanded to a record 82.0%. The real test comes in FY2026: with total expenses guided at $162–169B (+38–44% YoY), revenue would need to grow ~30%+ to maintain operating margins above 40%. Q1 2026 guidance implies this is achievable. If FY2026 shows margins compressing below 38% despite strong revenue growth, it would signal that Meta's cost structure is permanently shifting higher — a genuine red flag. The "Year of Efficiency" (2023) showed Meta can cut costs dramatically when needed; the question is whether the AI buildout makes that impossible to repeat.</p>
+</div>
+
+<div class="card golden">
+  <h4 class="green">Golden Tip 4 — Capex Pattern: The Defining Risk of This Investment</h4>
+  <p>Meta's capex trajectory is unprecedented in advertising history: $15B (FY2019–2020) → $18.7B (FY2021) → $31.4B (FY2022) → $27.3B (FY2023) → $37.3B (FY2024) → $69.7B (FY2025) → $115–135B (FY2026 guidance). This represents an 8–9x increase in six years. Capex as a percentage of revenue went from ~18% (pre-AI era) to ~35% (FY2025) and is on track for ~50%+ in FY2026. For context, Google's FY2025 capex was ~$75B on ~$390B revenue (~19%); Amazon's was ~$83B. Meta is spending more in absolute dollars on capex than almost any company on Earth while having half the revenue base of Google. Lynch's capex test (>70% of OCF) will almost certainly be breached in FY2026. The key monitoring metric: watch for any capex guidance revision downward — it would either signal AI spending discipline (bullish) or failed monetisation requiring pullback (bearish). The Broadcom partnership extension through 2029 for Meta's custom MTIA chips suggests the spending programme is locked in for multiple years.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>⑧ Online Ad Market Share — Meta, Google &amp; Amazon</h2>
+<!-- ============================================================ -->
+
+<div class="card management">
+  <h4 class="teal">Digital Advertising Market Concentration — The Big Three Duopoly (+Amazon)</h4>
+  <p><strong>Combined Market Share (2025–2026):</strong> According to WARC's Q2 2025 Global Ad Spend Forecast, Alphabet (Google), Amazon, and Meta captured approximately 55% of global advertising spend (excluding China) in 2025, with that share projected to rise to 56.2% in 2026. Per eMarketer's April 2026 forecast, the three platforms together represent 62.3% of total worldwide <em>digital</em> ad spending in 2026, and this combined share is expected to increase slightly through 2028.</p>
+
+  <p style="margin-top:10px;"><strong>Individual Platform Shares (Global Digital Ad Revenue, eMarketer 2026 forecast):</strong></p>
+  <ul style="margin-top:6px;">
+    <li><strong>Meta (Facebook + Instagram + WhatsApp + Threads):</strong> Projected to surpass Google in global digital ad revenue for the first time in 2026. Meta's worldwide growth rate is expected to accelerate from 22.1% in 2025 to 24.1% in 2026. eMarketer forecasts Meta's ad revenue at approximately $175B+ in 2026, giving it the #1 position globally. Meta commands approximately 25–26% of global digital ad spend.</li>
+    <li><strong>Google (Search + YouTube + Network):</strong> Growth rate holding steady at ~11.9% in 2026. Google remains dominant in search advertising ($248.6B globally in 2025 per WARC) but is losing share relative to Meta. Share approximately 26–27% of global digital ad spend, but dropping below Meta in absolute terms for the first time.</li>
+    <li><strong>Amazon (Retail Media):</strong> The fastest-growing major ad platform. Revenue expected to grow 16.1% to $60.6B in 2025, rising to $82B in 2026. Amazon's share of global digital ad spend is projected to reach 9.0% in 2026 (up from 8.0% in 2024). One-third of all global retail media spend flows through Amazon.</li>
+  </ul>
+
+  <p style="margin-top:10px;"><strong>Trend Analysis:</strong> The concentration of ad dollars around these three platforms continues to intensify. Social media (25.8% of total ad spend in 2025 at $298.3B) is attracting the largest share of new ad dollars at 40.6% of incremental market growth. Meta is the primary beneficiary. The key structural advantage driving consolidation: first-party data, AI-powered targeting, and audience reach that smaller platforms cannot replicate at comparable cost or speed. ByteDance (TikTok/Douyin) is the largest challenger at ~7.9% share but faces existential regulatory risk in the US and limited monetisation outside China.</p>
+</div>
+
+<div class="note">
+  SOURCES: WARC Q2 2025 Global Ad Spend Forecast — cited via thedrum.com (retrieved Apr 2026); eMarketer April 2026 forecast — cited via marketingdive.com and emarketer.com (retrieved Apr 2026); Dentsu Global Ad Spend Forecast Dec 2025 — cited via marketing-interactive.com. Global digital ad spend total ~$1.17T in 2025 per WARC.
+</div>
+
+<!-- ============================================================ -->
+<h2>⑨ Valuation Impact — If AI Capex Boom Ends</h2>
+<!-- ============================================================ -->
+
+<div class="card management">
+  <h4 class="teal">Scenario: What If Meta Returns to Pre-AI, Pre-Metaverse Capex Levels?</h4>
+  <p><strong>Pre-AI/Metaverse Normalised Capex:</strong> From FY2019–2020, Meta's capex was approximately $15B/year on ~$70–86B in revenue, representing ~18–21% of revenue. This was considered the "normal" capital intensity for a social media advertising platform.</p>
+
+  <p style="margin-top:10px;"><strong>Normalising for Future Revenue:</strong> If we assume FY2026 revenue of ~$250B (consistent with Q1 guidance trajectory of ~25% growth) and apply the pre-AI capex ratio of ~18% of revenue, normalised capex would be approximately $45B. Against estimated FY2026 OCF of ~$135–145B, this would yield normalised FCF of approximately $90–100B.</p>
+
+  <p style="margin-top:10px;"><strong>Current State vs Normalised State:</strong></p>
+  <ul style="margin-top:6px;">
+    <li><strong>FY2025 Reported FCF:</strong> $46.1B (capex $69.7B, OCF $115.8B)</li>
+    <li><strong>FY2025 Normalised FCF (at 18% capex/revenue):</strong> ~$80B (capex would be ~$36B instead of $69.7B)</li>
+    <li><strong>FY2026E Reported FCF:</strong> ~$10–30B (estimated; OCF ~$135B – capex $115–135B)</li>
+    <li><strong>FY2026E Normalised FCF (at 18% capex/revenue):</strong> ~$90B (capex would be ~$45B instead of $125B)</li>
+  </ul>
+
+  <p style="margin-top:10px;"><strong>Valuation Impact — DCF with Normalised Capex (FCF = ~$90B, WACC 10%, terminal g = 3%, 10Y growth 12%→5%):</strong></p>
+  <ul style="margin-top:6px;">
+    <li><strong>Intrinsic Value per Share (normalised capex):</strong> ~$1,200–1,400 — implying 75–104% upside from current $687</li>
+    <li><strong>Intrinsic Value per Share (current capex trajectory):</strong> ~$700–810 at r=9% Base — roughly fair value</li>
+  </ul>
+
+  <p style="margin-top:10px;"><strong>Key Insight:</strong> The difference between the "normalised capex" and "current capex" valuation is approximately $500–600/share, or roughly $1.3 trillion in enterprise value. This gap represents the market's implicit valuation of Meta's AI investment programme at <em>negative</em> ~$500B+ on a present-value basis — meaning the market is pricing in that the AI capex cycle is value-destructive, not value-creative. If the AI capex programme were to end tomorrow and capex returned to ~18% of revenue, the stock would be worth significantly more — suggesting the market is currently penalising Meta for its AI investment, not rewarding it.</p>
+
+  <p style="margin-top:10px;"><strong>Bull Interpretation:</strong> The AI capex will generate returns that justify the investment — in which case today's price represents a compelling entry point because the market is pricing in AI value destruction that won't materialise. <strong>Bear Interpretation:</strong> The AI capex will not generate adequate returns, and Meta's capital-light ad model has been permanently impaired — the "normalised capex" scenario is a fantasy because the competitive landscape now requires massive AI infrastructure spending indefinitely.</p>
+</div>
+
+<div class="note">
+  NOTE: Pre-AI capex normalisation calculation uses FY2019–2020 capex-to-revenue ratio of ~18%. FY2019 revenue = $70.7B, capex = ~$15.1B (21%). FY2020 revenue = $85.9B, capex = ~$15.1B (18%). Average ratio ~19%. Applied to FY2026E revenue of ~$250B = ~$45B normalised capex. Source: Meta 10-K filings FY2019–2020; capex history per mmcginvest.com analysis and SEC filings.
+</div>
+
+<!-- ============================================================ -->
+<footer>
+  <strong>SOURCES &amp; DATA CITATIONS</strong><br><br>
+
+  <strong>TIER 1 (Primary — stockanalysis.com):</strong><br>
+  stockanalysis.com/stocks/meta/financials/ — META income statement: Revenue ($200.97B FY25, $164.50B FY24, $134.90B FY23, $116.61B FY22, $117.93B FY21), gross/operating margins, SBC ($20.43B FY25), FCF ($46.11B FY25), D&A ($18.62B FY25). Accessed Apr 2026.<br>
+  stockanalysis.com/stocks/meta/statistics/ — META statistics: Fwd PE (21.49), PEG (1.06), ROIC (27.81%), FCF yield (2.81%), net debt ($3.49B), D/E (0.39), shares outstanding (2,530M), WACC (10.81%), consensus target ($838). Accessed Apr 2026.<br>
+  stockanalysis.com/stocks/googl/statistics/ — GOOGL: Fwd PE (27.52), ROIC (31.22%), PEG (1.84), net cash ($59.9B), D/E (0.16). Accessed Apr 2026.<br>
+  stockanalysis.com/stocks/pins/statistics/ — PINS: Fwd PE (10.88), ROIC (12.21%), PEG (0.60), net cash ($2.21B), revenue $4.22B (+16% YoY). Accessed Apr 2026.<br>
+  stockanalysis.com/stocks/rddt/statistics/ — RDDT: Fwd PE (39.84), ROIC (10.81%), PEG (1.09), revenue $2.20B (+69%). Accessed Apr 2026.<br>
+  stockanalysis.com/stocks/snap/statistics/ — SNAP: ROIC (–5.07%), revenue $5.93B (+11%), FCF $437M, net debt $1.20B. Accessed Apr 2026.<br><br>
+
+  <strong>TIER 2 (Fallback / Cross-check):</strong><br>
+  macrotrends.net/stocks/charts/META/meta-platforms/free-cash-flow — FCF history: FY24 $54.07B, FY23 $44.07B, FY25 $46.11B (–15% decline). Accessed Apr 2026.<br>
+  gurufocus.com/term/roic/META — ROIC verification. Accessed Apr 2026.<br>
+  gurufocus.com/term/free-cash-flow-per-share/META — FCF/share $17.92 TTM. Accessed Apr 2026.<br><br>
+
+  <strong>TIER 3 (Supplementary):</strong><br>
+  finbox.com/BMV:META*/explorer/capex/ — Capex history verification. Accessed Apr 2026.<br>
+  Yahoo Finance META — Current price $688.55 (Apr 17 close). Accessed Apr 2026.<br>
+  Robinhood META — Current price $686.97 (Apr 19). Accessed Apr 2026.<br><br>
+
+  <strong>TIER 4 (Company IR / SEC Filings):</strong><br>
+  Meta FY2025 Q4 Earnings Press Release, Jan 28, 2026 (s21.q4cdn.com) — Revenue $200.97B, Op Income $83.28B, Net Income $60.46B, OCF $115.80B, FCF $43.59B (Meta definition), Capex $72.22B (incl. finance leases), Long-term debt $58.74B, Cash $81.59B, DAP 3.58B, SBC $20.43B, Q1'26 guidance $53.5–56.5B, FY26 expenses $162–169B, FY26 capex $115–135B. Also: effective tax rate 30% (one-time charge; normalised 13%).<br>
+  Meta FY2024 Q4 Earnings Press Release, Jan 29, 2025 (SEC filing) — Revenue $164.50B, FCF ~$54B, Capex ~$39.2B, DAP 3.35B.<br>
+  Meta FY2023 Results (SEC filing) — Revenue $134.90B, Capex $28.10B.<br>
+  Facebook/Meta FY2021 Q4 and Q1–Q3 SEC filings — FY21 capex guidance $19–23B; FY21 actual ~$18.7B.<br><br>
+
+  <strong>AD MARKET SHARE SOURCES:</strong><br>
+  WARC Q2 2025 Global Ad Spend Forecast — via thedrum.com (Alphabet, Amazon, Meta = ~55% of global ad spend ex-China). Accessed Apr 2026.<br>
+  eMarketer April 2026 — via marketingdive.com and emarketer.com (Meta to surpass Google in digital ad revenue; combined 62.3% of global digital ad spend in 2026). Accessed Apr 2026.<br>
+  Dentsu Dec 2025 Global Ad Spend Forecast — via marketing-interactive.com (global ad spend to surpass $1T in 2026). Accessed Apr 2026.<br>
+  mmcginvest.com — Meta capex history analysis (FY2019–2025 capex trajectory). Accessed Apr 2026.<br><br>
+
+  <strong>DISCLAIMER:</strong> This report is for informational and educational purposes only. It does not constitute investment advice, a recommendation, or a solicitation to buy or sell any security. All financial data is sourced from public filings, third-party data providers, and company press releases as cited above. The DCF model uses subjective assumptions about growth rates, discount rates, and capex trajectories — actual outcomes may differ materially. Past performance is not indicative of future results. The author is not a registered investment advisor. Always conduct your own due diligence and consult a qualified financial professional before making investment decisions.
+</footer>
+
+</body>
+</html>
